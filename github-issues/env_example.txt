@@ -1,0 +1,12 @@
+# GitHub Configuration
+GITHUB_TOKEN=your_github_personal_access_token_here
+
+# MCP Server Configuration
+MCP_SERVER_URL=https://api.githubcopilot.com/mcp/
+
+# Logging Configuration (optional)
+LOG_LEVEL=INFO
+GITHUB_REPO=owner/repo
+
+# for issue_fetch.py
+ISSUE_NUMBER=number

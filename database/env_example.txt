@@ -1,0 +1,4 @@
+# Database connection string for PostgreSQL MCP client setup
+# Copy this file to .env and modify as needed
+# Note: URL-encode special characters in password (e.g., @ becomes %40)
+DATABASE_URI="postgresql://user:password@localhost:5432/dbname"
