@@ -9,4 +9,4 @@ LOG_LEVEL=INFO
 GITHUB_REPO=owner/repo
 
 # for issue_fetch.py
-ISSUE_NUMBER=number
+ISSUE_NUMBER=1
