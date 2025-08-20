@@ -36,8 +36,12 @@
       <div class="flex items-center justify-between">
         <h3 class="font-semibold mb-2">Optimized Prompt</h3>
         <button id="btnOptimize"
-          class="px-3 py-1 text-sm rounded bg-slate-100 hover:bg-slate-200">
-          Summarize MCP → Optimize (fits context window)
+          class="px-3 py-1 text-sm rounded bg-slate-100 hover:bg-slate-200 flex items-center gap-1"
+          title="Summarize → Optimize (fits context window)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Summarize → Optimize 
         </button>
       </div>
       <textarea id="optimizedPrompt" rows="10"
