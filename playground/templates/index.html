@@ -2,69 +2,159 @@
 {% block title %}MCP Playground{% endblock %}
 
 {% block content %}
-<!-- Chat -->
+
+<!-- ===================== Chat ===================== -->
 <div id="tab-chat" class="space-y-4">
+
+  <!-- Selected MCP Connectors (from Settings) -->
   <div class="card">
     <div class="flex items-center justify-between mb-2">
       <h3 class="font-semibold">Selected MCP Connectors</h3>
       <small class="text-slate-500">From Settings</small>
     </div>
-    <div id="mcpSelected" class="flex flex-wrap gap-1"></div>
+    <div id="mcpSelected" class="flex flex-wrap gap-2"></div>
   </div>
 
+  <!-- Conversation -->
   <div class="card">
     <div id="conversation" class="space-y-2 max-h-72 overflow-y-auto pr-2"></div>
   </div>
 
-  <div class="grid md:grid-cols-2 gap-4">
-    <div class="card">
+  <!-- ===== Chat Inputs: stack as 3 rows ===== -->
+  <div class="space-y-4">
+
+    <!-- Row 1: User Prompt (full width) -->
+    <div class="card w-full">
       <h3 class="font-semibold mb-2">User Prompt</h3>
-      <textarea id="userPrompt" class="w-full border rounded-lg p-2 h-32" placeholder="Ask something..."></textarea>
+      <textarea id="userPrompt" rows="10"
+        class="w-full border rounded-lg p-2"
+        placeholder="Ask something..."></textarea>
     </div>
-    <div class="card">
+
+    <!-- Row 2: Optimized Prompt (full width) -->
+    <div class="card w-full">
       <div class="flex items-center justify-between">
         <h3 class="font-semibold mb-2">Optimized Prompt</h3>
-        <button id="btnOptimize" class="px-3 py-1 text-sm rounded bg-slate-100 hover:bg-slate-200">
-          Summarize MCP → Optimize
+        <button id="btnOptimize"
+          class="px-3 py-1 text-sm rounded bg-slate-100 hover:bg-slate-200">
+          Summarize MCP → Optimize (fits context window)
         </button>
       </div>
-      <textarea id="optimizedPrompt" class="w-full border rounded-lg p-2 h-32" placeholder="Filled by optimizer (gemma3:270m)"></textarea>
+      <textarea id="optimizedPrompt" rows="10"
+        class="w-full border rounded-lg p-2"
+        placeholder="Filled by optimizer (budgeted)"></textarea>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="grid md:grid-cols-3 gap-4">
+    <!-- Row 3: Provider + Model + Send (full width) -->
+    <div class="card w-full">
+      <div class="grid md:grid-cols-3 gap-4">
+        <div>
+          <label class="text-sm">Provider</label>
+          <select id="provider" class="w-full border rounded-lg p-2"></select>
+        </div>
+        <div>
+          <label class="text-sm">Model</label>
+          <select id="model" class="w-full border rounded-lg p-2"></select>
+        </div>
+        <div class="flex items-end justify-end">
+          <button id="btnSend"
+            class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl shadow hover:bg-blue-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 10l9-6 9 6-9 6-9-6zm9 12V10"/>
+            </svg>
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ===== end Chat Inputs ===== -->
+
+</div>
+<!-- ===================== end Chat ===================== -->
+
+
+<!-- ===================== Prompt Templates ===================== -->
+<div id="tab-templates" class="hidden space-y-4">
+  <div class="card space-y-4">
+    <div class="flex items-center justify-between">
+      <h3 class="font-semibold">Prompt Templates</h3>
+      <small class="text-slate-500">These settings apply to the generated prompt only</small>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4 items-end">
       <div>
-        <label class="text-sm">Provider</label>
-        <select id="provider" class="w-full border rounded-lg p-2"></select>
+        <label class="text-sm">Prompt Template</label>
+        <select id="promptTemplate" class="w-full border rounded-lg p-2"></select>
+        <small class="text-slate-500">Prefills from Settings (repo) + sprint window.</small>
       </div>
-      <div>
-        <label class="text-sm">Model</label>
-        <select id="model" class="w-full border rounded-lg p-2"></select>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm">Sprint length (days)</label>
+          <input id="tpl_sprint_len" type="number" min="7" step="1"
+                 class="w-full border rounded-lg p-2" value="14" />
+        </div>
+        <div>
+          <label class="text-sm">Capacity (pts)</label>
+          <input id="tpl_capacity" type="number" min="1" step="1"
+                 class="w-full border rounded-lg p-2" value="20" />
+        </div>
       </div>
-      <div class="flex items-end justify-end">
-        <button id="btnSend" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl shadow hover:bg-blue-700">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10l9-6 9 6-9 6-9-6zm9 12V10"/>
-          </svg>
-          Send
-        </button>
+
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="text-sm">Include labels</label>
+          <input id="tpl_labels_include" class="w-full border rounded-lg p-2"
+                 placeholder="feature,bug,chore" />
+        </div>
+        <div>
+          <label class="text-sm">Exclude labels</label>
+          <input id="tpl_labels_exclude" class="w-full border rounded-lg p-2"
+                 placeholder="wontfix,duplicate" />
+        </div>
+        <div>
+          <label class="text-sm">Milestone</label>
+          <input id="tpl_milestone" class="w-full border rounded-lg p-2"
+                 placeholder="Next Sprint" />
+        </div>
       </div>
+    </div>
+
+    <div>
+      <label class="text-sm">Preview</label>
+      <textarea id="previewPrompt" class="w-full border rounded-lg p-2 h-40" readonly></textarea>
+    </div>
+
+    <div class="flex gap-3 justify-end">
+      <button id="btnCopyPrompt" class="bg-slate-800 text-white px-4 py-2 rounded-xl hover:bg-black">
+        Copy Prompt
+      </button>
+      <small id="copyStatus" class="text-slate-500 self-center"></small>
     </div>
   </div>
 </div>
+<!-- ===================== end Prompt Templates ===================== -->
 
-<!-- Debug -->
+
+<!-- ===================== Debug ===================== -->
 <div id="tab-debug" class="hidden">
   <div class="card">
     <h3 class="font-semibold mb-3">Logs</h3>
     <pre id="debugLog" class="mono text-sm whitespace-pre-wrap"></pre>
   </div>
 </div>
+<!-- ===================== end Debug ===================== -->
 
-<!-- Settings -->
+
+<!-- ===================== Settings ===================== -->
 <div id="tab-settings" class="hidden space-y-4">
   <form id="settingsForm" class="space-y-6">
+
+    <!-- Providers -->
     <div class="card">
       <h3 class="font-semibold mb-2">Providers</h3>
       <div class="grid md:grid-cols-4 gap-4">
@@ -77,7 +167,10 @@
           <label class="text-sm block mt-1">Model</label>
           <select class="w-full border rounded p-2 my-1" id="openai_model"></select>
           <input class="w-full border rounded p-2 my-1" id="openai_temp" placeholder="Temperature" />
+          <label class="text-sm block mt-2">Context Window (tokens)</label>
+          <input class="w-full border rounded p-2 my-1" id="openai_cw" type="number" min="1000" step="500" placeholder="128000" />
         </div>
+
         <!-- Anthropic -->
         <div class="border rounded-lg p-3">
           <h4 class="font-semibold">Anthropic</h4>
@@ -87,7 +180,10 @@
           <label class="text-sm block mt-1">Model</label>
           <select class="w-full border rounded p-2 my-1" id="anthropic_model"></select>
           <input class="w-full border rounded p-2 my-1" id="anthropic_temp" placeholder="Temperature" />
+          <label class="text-sm block mt-2">Context Window (tokens)</label>
+          <input class="w-full border rounded p-2 my-1" id="anthropic_cw" type="number" min="1000" step="500" placeholder="200000" />
         </div>
+
         <!-- Ollama -->
         <div class="border rounded-lg p-3">
           <h4 class="font-semibold">Ollama</h4>
@@ -96,20 +192,47 @@
           <label class="text-sm block mt-1">Default Model</label>
           <select class="w-full border rounded p-2 my-1" id="ollama_model"></select>
           <input class="w-full border rounded p-2 my-1" id="ollama_temp" placeholder="Temperature" />
+          <label class="text-sm block mt-2">Context Window (tokens)</label>
+          <input class="w-full border rounded p-2 my-1" id="ollama_cw" type="number" min="1000" step="500" placeholder="8000" />
         </div>
-        <!-- Google (Gemini) -->
+
+        <!-- Google -->
         <div class="border rounded-lg p-3">
           <h4 class="font-semibold">Google (Gemini)</h4>
           <label class="flex items-center gap-2 my-1"><input type="checkbox" id="google_enabled"> Enabled</label>
-          <input class="w-full border rounded p-2 my-1" id="google_url" placeholder="Base URL (https://generativelanguage.googleapis.com)" />
+          <input class="w-full border rounded p-2 my-1" id="google_url" placeholder="https://generativelanguage.googleapis.com" />
           <input class="w-full border rounded p-2 my-1" id="google_key" placeholder="API Key" />
           <label class="text-sm block mt-1">Model</label>
           <select class="w-full border rounded p-2 my-1" id="google_model"></select>
           <input class="w-full border rounded p-2 my-1" id="google_temp" placeholder="Temperature" />
+          <label class="text-sm block mt-2">Context Window (tokens)</label>
+          <input class="w-full border rounded p-2 my-1" id="google_cw" type="number" min="1000" step="500" placeholder="128000" />
         </div>
       </div>
     </div>
 
+    <!-- Optimizer (summarizer + instruction builder) -->
+    <div class="card">
+      <h3 class="font-semibold mb-2">Optimizer (Summarize & Instruction Builder)</h3>
+      <div class="grid md:grid-cols-4 gap-4 items-start">
+        <div class="border rounded-lg p-3">
+          <div class="font-semibold mb-1">Choose Provider</div>
+          <label class="flex items-center gap-2 my-1"><input type="radio" name="opt_provider" id="opt_openai" value="openai"> OpenAI</label>
+          <label class="flex items-center gap-2 my-1"><input type="radio" name="opt_provider" id="opt_anthropic" value="anthropic"> Anthropic</label>
+          <label class="flex items-center gap-2 my-1"><input type="radio" name="opt_provider" id="opt_ollama" value="ollama"> Ollama</label>
+          <label class="flex items-center gap-2 my-1"><input type="radio" name="opt_provider" id="opt_google" value="google"> Google (Gemini)</label>
+        </div>
+        <div class="border rounded-lg p-3">
+          <div class="font-semibold mb-1">Optimizer Model</div>
+          <select id="opt_model" class="w-full border rounded p-2"></select>
+          <label class="text-sm block mt-2">Temperature</label>
+          <input id="opt_temp" class="w-full border rounded p-2 my-1" placeholder="0.2" />
+          <p class="text-xs text-slate-500 mt-1">Used to summarize MCP output and build the final instruction.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MCP Connectors -->
     <div class="card">
       <h3 class="font-semibold mb-2">MCP Connectors</h3>
       <div class="grid md:grid-cols-2 gap-4">
@@ -125,14 +248,19 @@
           <label class="flex items-center gap-2 my-1"><input type="checkbox" id="pg_enabled"> Enabled</label>
           <input class="w-full border rounded p-2 my-1" id="pg_url" placeholder="MCP URL" />
           <input class="w-full border rounded p-2 my-1" id="pg_token" placeholder="Auth Token (optional)" />
-          <textarea class="w-full border rounded p-2 my-1" id="pg_sql" rows="3" placeholder="Sample SQL"></textarea>
+          <textarea class="w-full border rounded p-2 my-1" id="pg_sql" rows="3"
+                    placeholder="Sample SQL"></textarea>
         </div>
       </div>
     </div>
 
     <div class="flex justify-end">
-      <button class="bg-slate-800 text-white px-4 py-2 rounded-xl hover:bg-black" type="submit">Save Settings</button>
+      <button class="bg-slate-800 text-white px-4 py-2 rounded-xl hover:bg-black" type="submit">
+        Save Settings
+      </button>
     </div>
   </form>
 </div>
+<!-- ===================== end Settings ===================== -->
+
 {% endblock %}

@@ -12,13 +12,22 @@ This repository provides a complete environment for working with MCP servers, in
 - **PostgreSQL MCP Client**: Query and analyze PostgreSQL databases using MCP
 - **Database Setup**: Complete database setup with sample research data
 
+## 🔒 Security Notice
+
+**⚠️ IMPORTANT: Never commit API keys, tokens, or sensitive credentials to version control!**
+
+- The `playground/settings.json` file is **NOT** tracked by git (added to `.gitignore`)
+- Always use environment variables (`.env` files) for sensitive configuration
+- Keep your API keys secure and never share them publicly
+- If you accidentally commit sensitive information, immediately rotate/regenerate your keys
+
 ## 📁 Project Structure
 
 ```
 mcp-clients-playground/
 ├── playground/              # 🆕 Web-based MCP Playground
 │   ├── app.py              # Flask web application
-│   ├── settings.json       # Configuration file
+│   ├── settings.json       # Configuration file (NOT tracked by git)
 │   ├── requirements.txt    # Python dependencies
 │   ├── static/             # Frontend assets
 │   │   └── main.js         # JavaScript functionality
@@ -96,6 +105,8 @@ GITHUB_REPO=owner/repo
 # Optional: Custom settings file path
 PLAYGROUND_SETTINGS_PATH=settings.json
 ```
+
+**🔒 Security Note**: The `settings.json` file is automatically ignored by git. Your API keys and tokens will be loaded from environment variables and stored locally only.
 
 ### Usage
 
@@ -268,7 +279,7 @@ All components use environment variables for configuration. See the respective `
 
 ### Settings File (Playground)
 
-The playground uses a `settings.json` file for configuration:
+The playground uses a `settings.json` file for configuration. **This file is NOT tracked by git for security reasons.**
 
 ```json
 {
@@ -287,7 +298,7 @@ The playground uses a `settings.json` file for configuration:
       "base_url": "https://api.anthropic.com",
       "api_key": "",
       "temperature": 0.2,
-      "default_model": "claude-4-sonnet"
+      "default_model": "claude-3-7-sonnet-latest"
     },
     "ollama": {
       "enabled": true,
@@ -317,11 +328,13 @@ The playground uses a `settings.json` file for configuration:
       "enabled": true,
       "url": "http://localhost:8000/sse",
       "auth_token": "",
-      "sample_sql": "SELECT NOW() AS server_time;"
+      "sample_sql": "SELECT url, title, date, abstract, category FROM research_papers.ai_research_papers ORDER BY date DESC LIMIT 5;"
     }
   }
 }
 ```
+
+**🔒 Security**: API keys and tokens are loaded from environment variables and should never be hardcoded in this file.
 
 ## 📝 Examples
 
@@ -454,6 +467,12 @@ result = await client.call_tool("execute_sql", {
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+**🔒 Security Guidelines for Contributors**:
+- Never commit API keys, tokens, or sensitive credentials
+- Always use environment variables for configuration
+- Test with dummy/placeholder values
+- If you find exposed credentials, report them immediately
 
 ## 📄 License
 
