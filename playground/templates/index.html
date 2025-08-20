@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}MCP Playground{% endblock %}
+
+{% block content %}
+<!-- Chat -->
+<div id="tab-chat" class="space-y-4">
+  <div class="card">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="font-semibold">Selected MCP Connectors</h3>
+      <small class="text-slate-500">From Settings</small>
+    </div>
+    <div id="mcpSelected" class="flex flex-wrap gap-1"></div>
+  </div>
+
+  <div class="card">
+    <div id="conversation" class="space-y-2 max-h-72 overflow-y-auto pr-2"></div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="card">
+      <h3 class="font-semibold mb-2">User Prompt</h3>
+      <textarea id="userPrompt" class="w-full border rounded-lg p-2 h-32" placeholder="Ask something..."></textarea>
+    </div>
+    <div class="card">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold mb-2">Optimized Prompt</h3>
+        <button id="btnOptimize" class="px-3 py-1 text-sm rounded bg-slate-100 hover:bg-slate-200">
+          Summarize MCP → Optimize
+        </button>
+      </div>
+      <textarea id="optimizedPrompt" class="w-full border rounded-lg p-2 h-32" placeholder="Filled by optimizer (gemma3:270m)"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid md:grid-cols-3 gap-4">
+      <div>
+        <label class="text-sm">Provider</label>
+        <select id="provider" class="w-full border rounded-lg p-2"></select>
+      </div>
+      <div>
+        <label class="text-sm">Model</label>
+        <select id="model" class="w-full border rounded-lg p-2"></select>
+      </div>
+      <div class="flex items-end justify-end">
+        <button id="btnSend" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl shadow hover:bg-blue-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10l9-6 9 6-9 6-9-6zm9 12V10"/>
+          </svg>
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Debug -->
+<div id="tab-debug" class="hidden">
+  <div class="card">
+    <h3 class="font-semibold mb-3">Logs</h3>
+    <pre id="debugLog" class="mono text-sm whitespace-pre-wrap"></pre>
+  </div>
+</div>
+
+<!-- Settings -->
+<div id="tab-settings" class="hidden space-y-4">
+  <form id="settingsForm" class="space-y-6">
+    <div class="card">
+      <h3 class="font-semibold mb-2">Providers</h3>
+      <div class="grid md:grid-cols-4 gap-4">
+        <!-- OpenAI -->
+        <div class="border rounded-lg p-3">
+          <h4 class="font-semibold">OpenAI</h4>
+          <label class="flex items-center gap-2 my-1"><input type="checkbox" id="openai_enabled"> Enabled</label>
+          <input class="w-full border rounded p-2 my-1" id="openai_url" placeholder="Base URL" />
+          <input class="w-full border rounded p-2 my-1" id="openai_key" placeholder="API Key" />
+          <label class="text-sm block mt-1">Model</label>
+          <select class="w-full border rounded p-2 my-1" id="openai_model"></select>
+          <input class="w-full border rounded p-2 my-1" id="openai_temp" placeholder="Temperature" />
+        </div>
+        <!-- Anthropic -->
+        <div class="border rounded-lg p-3">
+          <h4 class="font-semibold">Anthropic</h4>
+          <label class="flex items-center gap-2 my-1"><input type="checkbox" id="anthropic_enabled"> Enabled</label>
+          <input class="w-full border rounded p-2 my-1" id="anthropic_url" placeholder="Base URL" />
+          <input class="w-full border rounded p-2 my-1" id="anthropic_key" placeholder="API Key" />
+          <label class="text-sm block mt-1">Model</label>
+          <select class="w-full border rounded p-2 my-1" id="anthropic_model"></select>
+          <input class="w-full border rounded p-2 my-1" id="anthropic_temp" placeholder="Temperature" />
+        </div>
+        <!-- Ollama -->
+        <div class="border rounded-lg p-3">
+          <h4 class="font-semibold">Ollama</h4>
+          <label class="flex items-center gap-2 my-1"><input type="checkbox" id="ollama_enabled"> Enabled</label>
+          <input class="w-full border rounded p-2 my-1" id="ollama_url" placeholder="Base URL (http://localhost:11434)" />
+          <label class="text-sm block mt-1">Default Model</label>
+          <select class="w-full border rounded p-2 my-1" id="ollama_model"></select>
+          <input class="w-full border rounded p-2 my-1" id="ollama_temp" placeholder="Temperature" />
+        </div>
+        <!-- Google (Gemini) -->
+        <div class="border rounded-lg p-3">
+          <h4 class="font-semibold">Google (Gemini)</h4>
+          <label class="flex items-center gap-2 my-1"><input type="checkbox" id="google_enabled"> Enabled</label>
+          <input class="w-full border rounded p-2 my-1" id="google_url" placeholder="Base URL (https://generativelanguage.googleapis.com)" />
+          <input class="w-full border rounded p-2 my-1" id="google_key" placeholder="API Key" />
+          <label class="text-sm block mt-1">Model</label>
+          <select class="w-full border rounded p-2 my-1" id="google_model"></select>
+          <input class="w-full border rounded p-2 my-1" id="google_temp" placeholder="Temperature" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="font-semibold mb-2">MCP Connectors</h3>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="border rounded-lg p-3">
+          <h4 class="font-semibold">GitHub Issues MCP</h4>
+          <label class="flex items-center gap-2 my-1"><input type="checkbox" id="gh_enabled"> Enabled</label>
+          <input class="w-full border rounded p-2 my-1" id="gh_url" placeholder="MCP URL" />
+          <input class="w-full border rounded p-2 my-1" id="gh_token" placeholder="Auth Token (PAT)" />
+          <input class="w-full border rounded p-2 my-1" id="gh_repo" placeholder="owner/repo" />
+        </div>
+        <div class="border rounded-lg p-3">
+          <h4 class="font-semibold">PostgreSQL MCP</h4>
+          <label class="flex items-center gap-2 my-1"><input type="checkbox" id="pg_enabled"> Enabled</label>
+          <input class="w-full border rounded p-2 my-1" id="pg_url" placeholder="MCP URL" />
+          <input class="w-full border rounded p-2 my-1" id="pg_token" placeholder="Auth Token (optional)" />
+          <textarea class="w-full border rounded p-2 my-1" id="pg_sql" rows="3" placeholder="Sample SQL"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button class="bg-slate-800 text-white px-4 py-2 rounded-xl hover:bg-black" type="submit">Save Settings</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

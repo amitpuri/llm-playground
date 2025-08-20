@@ -230,7 +230,7 @@ $RECYCLE.BIN/
 .Trash-*
 .nfs*
 
-# Project specific
+# Project specific - MCP Clients Playground
 # Add any project-specific files or directories here
 config.ini
 secrets.json
@@ -239,6 +239,48 @@ secrets.json
 *.p12
 *.pfx
 
+# MCP Playground specific
+playground/settings.json
+playground/.env
+playground/instance/
+playground/static/uploads/
+playground/temp/
+playground/cache/
+
+# API Keys and sensitive configuration
+**/api_keys.txt
+**/credentials.json
+**/token.json
+**/auth.json
+**/config.json
+**/secrets.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+database/data/
+database/backups/
+database/exports/
+
+# GitHub issues exports
+github-issues/*.json
+github-issues/exports/
+github-issues/data/
+
+# PostgreSQL MCP specific
+pg/data/
+pg/logs/
+pg/exports/
+
+# Generated files and exports
+exports/
+data/
+backups/
+*.csv
+*.xlsx
+*.json.bak
+
 # Logs
 *.log
 logs/
@@ -246,3 +288,31 @@ logs/
 # Temporary files
 temp/
 tmp/
+
+# Ollama models and data (if running locally)
+ollama_data/
+ollama_models/
+
+# MCP server data
+mcp_data/
+mcp_cache/
+mcp_logs/
+
+# Node.js (if any frontend tools are used)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Local development
+.local/
+local/
+dev/
+development/
