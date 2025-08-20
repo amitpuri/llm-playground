@@ -121,6 +121,46 @@ DEFAULT_SETTINGS = AppSettings(
 
 # ----------------------------- Util -----------------------------
 
+import time
+
+def _snip(obj: Any, n: int = 1200) -> str:
+    try:
+        return json.dumps(obj, ensure_ascii=False)[:n]
+    except Exception:
+        return str(obj)[:n]
+
+def _snip_text(s: str, n: int = 1200) -> str:
+    return (s or "")[:n]
+
+def _call_and_log(calls: List[Dict[str, Any]]):
+    """
+    Returns a wrapper (tool, args, coro) -> (res, norm)
+    that times and logs input/output for MCP tools.
+    """
+    async def _inner(client, tool: str, args: Dict[str, Any], coro):
+        t0 = time.perf_counter()
+        entry = {"tool": tool, "input": args}
+        try:
+            res = await coro
+            norm = _jsonify_tc(res)
+            entry.update({
+                "ok": True,
+                "duration_ms": int((time.perf_counter() - t0) * 1000),
+                "output_preview": _snip(norm),
+            })
+            calls.append(entry)
+            return res, norm
+        except Exception as e:
+            entry.update({
+                "ok": False,
+                "duration_ms": int((time.perf_counter() - t0) * 1000),
+                "error": str(e),
+            })
+            calls.append(entry)
+            raise
+    return _inner
+
+
 def _deep_merge(dst, src):
     for k, v in src.items():
         if isinstance(v, dict) and isinstance(dst.get(k), dict):
@@ -413,7 +453,7 @@ def parse_model_json(txt: str) -> Dict[str, Any]:
     return {"answer": txt, "used_connectors": [], "citations": []}
 
 async def fetch_github_issues_and_comments(conf: MCPGitHubConf, limit_issues: int = 3, limit_comments: int = 5) -> Dict[str, Any]:
-    dbg = {"tools": [], "flow": []}
+    dbg = {"tools": [], "flow": [], "calls": []}
     if not conf.enabled or not conf.url or not conf.repo:
         return {"issues": [], "debug": {**dbg, "error": "github_mcp_disabled_or_not_configured"}}
     owner_repo = conf.repo.strip()
@@ -423,20 +463,47 @@ async def fetch_github_issues_and_comments(conf: MCPGitHubConf, limit_issues: in
 
     items: List[Dict[str, Any]] = []
     async with _mcp_connect(conf.url, conf.auth_token) as client:
-        tools = await client.list_tools()
-        tool_names = [getattr(t, "name", None) or t.get("name") for t in tools]
-        dbg["tools"] = tool_names
+        # list_tools (log as a “call” for consistency)
+        t0 = time.perf_counter()
+        try:
+            tools = await client.list_tools()
+            dbg["tools"] = [getattr(t, "name", None) or t.get("name") for t in tools]
+            dbg["calls"].append({
+                "tool": "list_tools",
+                "input": {},
+                "ok": True,
+                "duration_ms": int((time.perf_counter() - t0) * 1000),
+                "output_preview": _snip(dbg["tools"]),
+            })
+        except Exception as e:
+            dbg["calls"].append({
+                "tool": "list_tools",
+                "input": {},
+                "ok": False,
+                "duration_ms": int((time.perf_counter() - t0) * 1000),
+                "error": str(e),
+            })
+            return {"issues": [], "debug": dbg}
 
-        if "search_issues" in tool_names:
-            raw_list = await client.call_tool("search_issues", {"query": f"repo:{owner}/{repo} is:issue is:open", "page": 1, "per_page": limit_issues})
-            doc = _jsonify_tc(raw_list)
+        clog = _call_and_log(dbg["calls"])
+
+        # Prefer search_issues, fall back to list_issues
+        if "search_issues" in dbg["tools"]:
+            _, doc = await clog(
+                client, "search_issues",
+                {"query": f"repo:{owner}/{repo} is:issue is:open", "page": 1, "per_page": limit_issues},
+                client.call_tool("search_issues", {"query": f"repo:{owner}/{repo} is:issue is:open", "page": 1, "per_page": limit_issues})
+            )
             if isinstance(doc, dict) and "items" in doc:
                 items = doc["items"][:limit_issues]
             elif isinstance(doc, list):
                 items = doc[:limit_issues]
-        elif "list_issues" in tool_names:
-            raw_list = await client.call_tool("list_issues", {"owner": owner, "repo": repo, "state": "open", "page": 1, "per_page": limit_issues})
-            doc = _jsonify_tc(raw_list)
+        elif "list_issues" in dbg["tools"]:
+            _, doc = await clog(
+                client, "list_issues",
+                {"owner": owner, "repo": repo, "state": "open", "page": 1, "per_page": limit_issues},
+                client.call_tool("list_issues", {"owner": owner, "repo": repo, "state": "open", "page": 1, "per_page": limit_issues})
+            )
             if isinstance(doc, list):
                 items = doc[:limit_issues]
 
@@ -453,17 +520,17 @@ async def fetch_github_issues_and_comments(conf: MCPGitHubConf, limit_issues: in
             labels = []
             if isinstance(labels_in, list):
                 for l in labels_in:
-                    if isinstance(l, dict):
-                        labels.append(l.get("name") or "")
-                    else:
-                        labels.append(str(l))
+                    labels.append(l.get("name") if isinstance(l, dict) else str(l))
 
             body = ""
             comments: List[Dict[str, Any]] = []
 
-            if "get_issue" in tool_names and num is not None:
-                raw_issue = await client.call_tool("get_issue", {"owner": owner, "repo": repo, "issue_number": int(num)})
-                issue_doc = _jsonify_tc(raw_issue)
+            if "get_issue" in dbg["tools"] and num is not None:
+                _, issue_doc = await clog(
+                    client, "get_issue",
+                    {"owner": owner, "repo": repo, "issue_number": int(num)},
+                    client.call_tool("get_issue", {"owner": owner, "repo": repo, "issue_number": int(num)})
+                )
                 if isinstance(issue_doc, dict):
                     body = (issue_doc.get("body") or "").strip() or body
                     title = issue_doc.get("title") or title
@@ -471,16 +538,14 @@ async def fetch_github_issues_and_comments(conf: MCPGitHubConf, limit_issues: in
                     updated_at = issue_doc.get("updated_at") or updated_at
                     lab_src = issue_doc.get("labels")
                     if isinstance(lab_src, list):
-                        labels = []
-                        for l in lab_src:
-                            if isinstance(l, dict):
-                                labels.append(l.get("name") or "")
-                            else:
-                                labels.append(str(l))
+                        labels = [ (l.get("name") if isinstance(l, dict) else str(l)) for l in lab_src ]
 
-            if "get_issue_comments" in tool_names and num is not None:
-                raw_comments = await client.call_tool("get_issue_comments", {"owner": owner, "repo": repo, "issue_number": int(num), "page": 1, "per_page": limit_comments})
-                cm_doc = _jsonify_tc(raw_comments)
+            if "get_issue_comments" in dbg["tools"] and num is not None:
+                _, cm_doc = await clog(
+                    client, "get_issue_comments",
+                    {"owner": owner, "repo": repo, "issue_number": int(num), "page": 1, "per_page": limit_comments},
+                    client.call_tool("get_issue_comments", {"owner": owner, "repo": repo, "issue_number": int(num), "page": 1, "per_page": limit_comments})
+                )
                 if isinstance(cm_doc, list):
                     for c in cm_doc[:limit_comments]:
                         comments.append({
@@ -490,16 +555,11 @@ async def fetch_github_issues_and_comments(conf: MCPGitHubConf, limit_issues: in
                         })
 
             detailed.append({
-                "number": num,
-                "title": title,
-                "state": state,
-                "url": url,
-                "updated_at": updated_at,
-                "labels": labels,
-                "body": body,
-                "comments": comments
+                "number": num, "title": title, "state": state, "url": url,
+                "updated_at": updated_at, "labels": labels, "body": body, "comments": comments
             })
         return {"issues": detailed, "debug": dbg}
+
 
 
 def _rows_from_doc(doc: Any, limit_rows: int = 8) -> List[Dict[str, Any]]:
@@ -548,25 +608,43 @@ def _rows_from_doc(doc: Any, limit_rows: int = 8) -> List[Dict[str, Any]]:
     return rows
 
 async def fetch_research_papers(conf: MCPPostgresConf, limit_rows: int = 8) -> Dict[str, Any]:
-    dbg = {"tools": []}
+    dbg = {"tools": [], "calls": [], "sql": (conf.sample_sql or "SELECT NOW() AS server_time;").strip()}
     if not conf.enabled or not conf.url:
         return {"rows": [], "debug": {**dbg, "error": "postgres_mcp_disabled_or_not_configured"}}
 
-    sql = (conf.sample_sql or "SELECT NOW() AS server_time;").strip()
-    dbg["sql"] = sql  # log the SQL used
-
     async with _mcp_connect(conf.url, conf.auth_token) as client:
-        tools = await client.list_tools()
-        dbg["tools"] = [getattr(t, "name", None) or t.get("name") for t in tools]
+        # list_tools
+        t0 = time.perf_counter()
+        try:
+            tools = await client.list_tools()
+            dbg["tools"] = [getattr(t, "name", None) or t.get("name") for t in tools]
+            dbg["calls"].append({
+                "tool": "list_tools", "input": {}, "ok": True,
+                "duration_ms": int((time.perf_counter() - t0) * 1000),
+                "output_preview": _snip(dbg["tools"]),
+            })
+        except Exception as e:
+            dbg["calls"].append({
+                "tool": "list_tools", "input": {}, "ok": False,
+                "duration_ms": int((time.perf_counter() - t0) * 1000),
+                "error": str(e),
+            })
+            return {"rows": [], "debug": dbg}
+
         if "execute_sql" not in dbg["tools"]:
             return {"rows": [], "debug": {**dbg, "error": "execute_sql not available"}}
+
+        clog = _call_and_log(dbg["calls"])
         try:
-            raw = await client.call_tool("execute_sql", {"sql": sql})
-            doc = _jsonify_tc(raw)
+            _, doc = await clog(
+                client, "execute_sql", {"sql": dbg["sql"]},
+                client.call_tool("execute_sql", {"sql": dbg["sql"]})
+            )
             rows = _rows_from_doc(doc, limit_rows)
             return {"rows": rows, "debug": dbg}
         except Exception as e:
             return {"rows": [], "debug": {**dbg, "error": str(e)}}
+
 
 def render_issues_raw_text(issues: List[Dict[str, Any]]) -> str:
     parts = []
@@ -810,28 +888,12 @@ def api_chat():
     model = request.json.get("model") or None
     user_prompt = (request.json.get("user_prompt") or "").strip()
 
-    debug: Dict[str, Any] = {"provider": provider, "user_prompt": user_prompt}
+    # Re-fetch MCP contexts for fresh grounding
+    gh = asyncio.run(fetch_github_issues_and_comments(MCPGitHubConf(**s.mcp["github"]), 3, 5))
+    pg = asyncio.run(fetch_research_papers(MCPPostgresConf(**s.mcp["postgres"]), 8))
+    issues_text = render_issues_raw_text(gh.get("issues", []))
+    papers_text = render_papers_raw_text(pg.get("rows", []))
 
-    # Re-fetch MCP contexts at send time (uses configured tokens/URLs)
-    gh_conf = MCPGitHubConf(**s.mcp["github"])
-    pg_conf = MCPPostgresConf(**s.mcp["postgres"])
-
-    issues_text, papers_text = "", ""
-    try:
-        gh = asyncio.run(fetch_github_issues_and_comments(gh_conf, limit_issues=3, limit_comments=5))
-        debug["github"] = gh.get("debug")
-        issues_text = render_issues_raw_text(gh.get("issues", []))
-    except Exception as e:
-        debug["github_error"] = str(e)
-
-    try:
-        pg = asyncio.run(fetch_research_papers(pg_conf, limit_rows=8))
-        debug["postgres"] = pg.get("debug")
-        papers_text = render_papers_raw_text(pg.get("rows", []))
-    except Exception as e:
-        debug["postgres_error"] = str(e)
-
-    # Rebuild optimized final prompt against the chat provider's context window
     pconf = s.providers.get(provider) or s.providers["anthropic"]
     cw = pconf.context_window or 128000
     final_prompt, opt_dbg = build_optimized_prompt_dual_context(
@@ -840,44 +902,70 @@ def api_chat():
         papers_text=papers_text,
         provider_cw_tokens=cw,
         providers=s.providers,
-        optimizer=s.optimizer,  # optimizer provider/model (could be different from chat provider)
+        optimizer=s.optimizer,
     )
-    debug["optimizer"] = opt_dbg
-    debug["final_prompt_preview"] = final_prompt[:800]
 
-    # Call the selected chat provider/model
     sys_prompt = f"{PROVIDER_SYSTEM}\n\nSchema:\n{STRUCT_SCHEMA}"
-    try:
-        p = s.providers.get(provider)
-        if not p or not p.enabled:
-            return jsonify({"text": "", "structured": "{}", "debug": {"error": f"Provider '{provider}' disabled"}}), 400
+    raw = ""
+    provider_debug = {
+        "name": pconf.name or provider,
+        "model": model or pconf.default_model,
+        "endpoint": pconf.base_url,
+        "request": {
+            "system_preview": _snip_text(sys_prompt, 800),
+            "prompt_preview": _snip_text(final_prompt, 800),
+            "temperature": pconf.temperature,
+        }
+    }
 
+    try:
         if provider == "openai":
-            raw = call_openai(p.base_url, p.api_key, model or p.default_model, sys_prompt, final_prompt, p.temperature)
+            raw = call_openai(pconf.base_url, pconf.api_key, provider_debug["model"], sys_prompt, final_prompt, pconf.temperature)
         elif provider == "anthropic":
             try:
-                raw = call_anthropic(p.base_url, p.api_key, model or p.default_model, sys_prompt, final_prompt, p.temperature)
+                raw = call_anthropic(pconf.base_url, pconf.api_key, provider_debug["model"], sys_prompt, final_prompt, pconf.temperature)
             except requests.HTTPError as e:
-                raw = json.dumps({
-                    "answer": f"Provider error: {e} @ {_anth_endpoint(p.base_url, 'messages')}",
-                    "used_connectors": [], "citations": []
-                })
+                raw = json.dumps({"answer": f"Provider error: {e} @ {_anth_endpoint(pconf.base_url, 'messages')}", "used_connectors": [], "citations": []})
         elif provider == "ollama":
-            raw = call_ollama(p.base_url, model or p.default_model, f"{sys_prompt}\n\n{final_prompt}\n\nRespond with JSON only.", p.temperature)
+            raw = call_ollama(pconf.base_url, provider_debug["model"], f"{sys_prompt}\n\n{final_prompt}\n\nRespond with JSON only.", pconf.temperature)
         elif provider == "google":
-            raw = call_google(p.base_url, p.api_key, model or p.default_model, sys_prompt, final_prompt, p.temperature)
+            raw = call_google(pconf.base_url, pconf.api_key, provider_debug["model"], sys_prompt, final_prompt, pconf.temperature)
         else:
             raise RuntimeError(f"Unknown provider: {provider}")
-        txt = (raw or "").strip()
     except Exception as e:
-        txt = json.dumps({"answer": f"Provider error: {e}", "used_connectors": [], "citations": []})
-        debug["provider_error"] = str(e)
+        raw = json.dumps({"answer": f"Provider error: {e}", "used_connectors": [], "citations": []})
+        provider_debug["error"] = str(e)
 
-    # Robust JSON parsing (handles code fences & nested JSON-in-answer)
-    struct = parse_model_json(txt)
+    provider_debug["response"] = {
+        "raw_preview": _snip_text(raw, 1400)
+    }
 
-    debug["provider_io"] = {"provider": provider, "model": model or pconf.default_model, "base_url": pconf.base_url}
-    return jsonify({"text": txt, "structured": json.dumps(struct, ensure_ascii=False, indent=2), "debug": debug})
+    # Robust parse (use your existing parse if you already added it)
+    try:
+        structured = json.loads(raw)
+    except Exception:
+        structured = {"answer": raw, "used_connectors": [], "citations": []}
+
+    provider_debug["parsed"] = {
+        "structured_preview": _snip(structured, 1400)
+    }
+
+    debug = {
+        "mcp": {
+            "github": gh.get("debug"),
+            "postgres": pg.get("debug"),
+        },
+        "optimizer": opt_dbg,
+        "provider": provider_debug,
+        "final_prompt_tokens_est": est_tokens(final_prompt),
+    }
+
+    return jsonify({
+        "text": raw,
+        "structured": json.dumps(structured, ensure_ascii=False, indent=2),
+        "debug": debug
+    })
+
 
 
 if __name__ == "__main__":

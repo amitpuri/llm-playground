@@ -1,9 +1,12 @@
+/* globals fetch, navigator, alert, document, window */
+
 const $ = sel => document.querySelector(sel);
 const $$ = sel => [...document.querySelectorAll(sel)];
 
 let SETTINGS = null;
 let DEBUG = [];
 
+/* ----------------------------- Prompt Templates ----------------------------- */
 // Prompt templates (use {owner_repo}, {start_date}, {end_date}, {capacity_points}, {selected_labels}, {exclude_labels}, {milestone_name})
 const PROMPT_TEMPLATES = [
   {
@@ -80,10 +83,12 @@ Show #number, title, est, labels, url, and 1-line “why it fits now”. Priorit
 
 const MODEL_OPTIONS = {
   openai: ["gpt-5", "gpt-4o", "o4-mini"],
-  anthropic: ["claude-4-sonnet", "claude-3.7-sonnet", "claude-3.5-sonnet"],
+  anthropic: ["claude-opus-4-0", "claude-sonnet-4-0", "claude-3-7-sonnet-latest", "claude-3-5-sonnet-latest", "claude-3-5-haiku-latest"],
   ollama: ["gemma3:270m", "gpt-oss:20b", "llama3.2:3b"],
   google: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"],
 };
+
+/* ----------------------------- Date/Helpers ----------------------------- */
 
 function nextMonday(d = new Date()) {
   const dt = new Date(d);
@@ -114,6 +119,13 @@ function csvToArray(s) {
     .map(x => x.trim())
     .filter(Boolean);
 }
+
+function htmlEscape(s) {
+  return String(s || "").replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ----------------------------- Prompt templating ----------------------------- */
 
 function fillPromptTemplate(templateId, settings) {
   const tpl = PROMPT_TEMPLATES.find(t => t.id === templateId) || PROMPT_TEMPLATES[0];
@@ -146,7 +158,6 @@ function fillPromptTemplate(templateId, settings) {
   Object.entries(ctx).forEach(([k, v]) => { out = out.split(k).join(v); });
   return out;
 }
-
 
 function renderPromptPreview() {
   const id = $('#promptTemplate').value;
@@ -191,12 +202,94 @@ function bindPromptTemplateUI() {
   });
 }
 
-
+/* ----------------------------- Debug helpers & UI ----------------------------- */
 
 function logDebug(section, obj) {
   DEBUG.push({ ts: new Date().toISOString(), section, obj });
-  $('#debugLog').textContent = JSON.stringify(DEBUG, null, 2);
+  // Keep legacy JSON log (fallback panel)
+  const legacy = $('#debugLog');
+  if (legacy) legacy.textContent = JSON.stringify(DEBUG, null, 2);
 }
+
+function getDebugEl() {
+  return $('#debug-output') || $('#debugLog'); // prefer structured panel; fallback to legacy <pre id="debugLog">
+}
+
+function renderCallTable(calls = []) {
+  if (!Array.isArray(calls) || !calls.length) return '<em>No calls</em>';
+  let rows = calls.map(c => `
+    <tr>
+      <td>${htmlEscape(c.tool)}</td>
+      <td><pre class="small-pre">${htmlEscape(JSON.stringify(c.input, null, 2))}</pre></td>
+      <td>${c.ok ? '✅' : '❌'}</td>
+      <td>${c.duration_ms ?? ''}</td>
+      <td><pre class="small-pre">${htmlEscape(c.output_preview || c.error || '')}</pre></td>
+    </tr>
+  `).join('');
+  return `
+    <table class="debug-table">
+      <thead><tr><th>Tool</th><th>Input</th><th>OK</th><th>ms</th><th>Output / Error (preview)</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderDebug(debug) {
+  const el = getDebugEl();
+  if (!el) return;
+  if (!debug) { el.innerHTML = '<em>No debug</em>'; return; }
+
+  const prov = debug.provider || {};
+  const gh = (debug.mcp && debug.mcp.github) || {};
+  const pg = (debug.mcp && debug.mcp.postgres) || {};
+
+  el.innerHTML = `
+    <section>
+      <h3>Provider</h3>
+      <div><strong>Name:</strong> ${htmlEscape(prov.name || '')}</div>
+      <div><strong>Model:</strong> ${htmlEscape(prov.model || '')}</div>
+      <div><strong>Endpoint:</strong> ${htmlEscape(prov.endpoint || '')}</div>
+      ${prov.error ? `<div class="err"><strong>Error:</strong> ${htmlEscape(prov.error)}</div>` : ''}
+      <h4>Request</h4>
+      <pre class="small-pre">System (preview):\n${htmlEscape((prov.request && prov.request.system_preview) || '')}</pre>
+      <pre class="small-pre">Prompt (preview):\n${htmlEscape((prov.request && prov.request.prompt_preview) || '')}</pre>
+      <div><strong>Temperature:</strong> ${htmlEscape(String((prov.request && prov.request.temperature) ?? ''))}</div>
+      <h4>Response</h4>
+      <pre class="small-pre">${htmlEscape((prov.response && prov.response.raw_preview) || '')}</pre>
+      <h4>Parsed</h4>
+      <pre class="small-pre">${htmlEscape((prov.parsed && prov.parsed.structured_preview) || '')}</pre>
+    </section>
+
+    <hr/>
+
+    <section>
+      <h3>MCP — GitHub</h3>
+      ${gh && gh.error ? `<div class="err"><strong>Error:</strong> ${htmlEscape(gh.error)}</div>` : ''}
+      <div><strong>Tools:</strong> <code>${htmlEscape(JSON.stringify(gh.tools || []))}</code></div>
+      ${renderCallTable(gh.calls)}
+    </section>
+
+    <hr/>
+
+    <section>
+      <h3>MCP — Postgres</h3>
+      ${pg && pg.error ? `<div class="err"><strong>Error:</strong> ${htmlEscape(pg.error)}</div>` : ''}
+      <div><strong>Tools:</strong> <code>${htmlEscape(JSON.stringify(pg.tools || []))}</code></div>
+      <div><strong>SQL:</strong> <code>${htmlEscape(pg.sql || '')}</code></div>
+      ${renderCallTable(pg.calls)}
+    </section>
+
+    <hr/>
+
+    <section>
+      <h3>Optimizer</h3>
+      <pre class="small-pre">${htmlEscape(JSON.stringify(debug.optimizer || {}, null, 2))}</pre>
+      <div><strong>Final prompt tokens (est):</strong> ${htmlEscape(String(debug.final_prompt_tokens_est || ''))}</div>
+    </section>
+  `;
+}
+
+/* ----------------------------- Tabs ----------------------------- */
 
 function activateTab(name) {
   $$('.tab').forEach(b => b.classList.remove('tab-active'));
@@ -208,6 +301,7 @@ function activateTab(name) {
   });
 }
 
+/* ----------------------------- Settings load/save ----------------------------- */
 
 async function loadSettings() {
   const res = await fetch('/api/settings');
@@ -217,7 +311,6 @@ async function loadSettings() {
   renderMcpSelected();
   populatePromptTemplates();
 }
-
 
 function populateModelSelect(selectEl, providerKey, defaultVal) {
   selectEl.innerHTML = '';
@@ -402,6 +495,8 @@ async function saveSettingsFromForm(evt) {
   alert('Settings saved');
 }
 
+/* ----------------------------- MCP selection chips ----------------------------- */
+
 function renderMcpSelected() {
   const wrap = $('#mcpSelected');
   wrap.innerHTML = '';
@@ -415,9 +510,11 @@ function renderMcpSelected() {
     pills.push('PostgreSQL');
   }
   wrap.innerHTML = pills.length
-    ? pills.map(t => `<span class="pill">${t}</span>`).join(' ')
+    ? pills.map(t => `<span class="pill">${htmlEscape(t)}</span>`).join(' ')
     : `<span class="text-slate-500 text-sm">No connectors enabled</span>`;
 }
+
+/* ----------------------------- Actions: optimize & send ----------------------------- */
 
 async function optimize() {
   const userPrompt = $('#userPrompt').value;
@@ -430,6 +527,9 @@ async function optimize() {
   });
   const data = await res.json();
   $('#optimizedPrompt').value = data.optimized_prompt || userPrompt;
+
+  // Rich debug
+  renderDebug(data.debug);
   logDebug('optimize', data.debug);
   activateTab('debug');
 }
@@ -439,6 +539,7 @@ async function send() {
   const model = $('#model').value || '';
   const userPrompt = $('#userPrompt').value;
   const optimizedPrompt = $('#optimizedPrompt').value || userPrompt;
+
   const res = await fetch('/api/chat', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -457,9 +558,13 @@ async function send() {
   convo.appendChild(botDiv);
   convo.scrollTop = convo.scrollHeight;
 
+  // Rich debug
+  renderDebug(data.debug);
   logDebug('chat', data.debug);
   activateTab('debug');
 }
+
+/* ----------------------------- Init ----------------------------- */
 
 function bindUI() {
   $$('.tab').forEach(b => b.addEventListener('click', () => activateTab(b.dataset.tab)));
