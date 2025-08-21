@@ -462,13 +462,16 @@ result = await client.call_tool("execute_sql", {
 
 ## References
 
-[One Month in MCP: What I Learned the Hard Way](https://www.reddit.com/r/mcp/comments/1mub6g6/one_month_in_mcp_what_i_learned_the_hard_way/)
-- **STDIO: Powerful but painful** — Good for quick tasks; becomes impractical and labor-intensive for managing multiple servers.
-- **Local setups don’t scale** — Quick to start but hard to maintain and share for teams; local-first is risky and difficult to scale without automation.
-- **Dynamic allocation is key** — Spin up servers only when needed instead of keeping many running, which streamlines management and reduces headaches.
-- **Tool naming collisions cause problems** — Avoid duplicate names by using namespaces/groups to prevent silent failures with multiple servers.
-- **~40 tools limit bottleneck** — LLM performance drops beyond 40 tools; bundle tools thoughtfully for each workflow instead of loading too many.
+- [One Month in MCP: What I Learned the Hard Way](https://www.reddit.com/r/mcp/comments/1mub6g6/one_month_in_mcp_what_i_learned_the_hard_way/)
+    - **STDIO: Powerful but painful** — Good for quick tasks; becomes impractical and labor-intensive for managing multiple servers.
+    - **Local setups don’t scale** — Quick to start but hard to maintain and share for teams; local-first is risky and difficult to scale without automation.
+    - **Dynamic allocation is key** — Spin up servers only when needed instead of keeping many running, which streamlines management and reduces headaches.
+    - **Tool naming collisions cause problems** — Avoid duplicate names by using namespaces/groups to prevent silent failures with multiple servers.
+    - **~40 tools limit bottleneck** — LLM performance drops beyond 40 tools; bundle tools thoughtfully for each workflow instead of loading too many.
 
+- [Model Context Protocol (MCP) Curriculum for Beginners](https://github.com/microsoft/mcp-for-beginners/)
+  
+![Authorization flow](https://raw.githubusercontent.com/Azure-Samples/remote-mcp-apim-functions-python/refs/heads/main/infra/app/apim-oauth/diagrams/images/mcp-client-auth.png)
 
 
 ## 🤝 Contributing
