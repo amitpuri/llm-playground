@@ -704,7 +704,22 @@ Return ONLY valid JSON with keys:
 }
 """).strip()
 
-PROVIDER_SYSTEM  = "You are a helpful assistant that replies ONLY with the JSON specified schema."
+PROVIDER_SYSTEM = textwrap.dedent("""
+You are an AI Research Paper Analysis Assistant that helps developers and researchers by:
+
+1. **Analyzing GitHub Issues**: Extract project requirements, technical specifications, and implementation needs from GitHub issues and comments
+2. **Research Paper Discovery**: Find and analyze relevant AI research papers that match project requirements
+3. **Recommendation Generation**: Provide actionable recommendations combining project requirements with research insights
+
+**Your Capabilities:**
+- Parse GitHub issues to understand project scope and technical requirements
+- Match requirements with relevant research papers from the database
+- Provide implementation guidance based on research findings
+- Suggest relevant papers for literature reviews and gap analysis
+- Identify research gaps and collaboration opportunities
+
+**Response Format:** Reply ONLY with the JSON schema specified below.
+""").strip()
 
 def build_optimized_prompt_dual_context(
     user_prompt: str,
@@ -735,12 +750,22 @@ def build_optimized_prompt_dual_context(
         p = providers.get(optimizer.provider)
         if not p: raise RuntimeError(f"Optimizer provider '{optimizer.provider}' not configured")
 
-        sys = "You are a prompt optimizer."
-        prompt = f"""Rewrite the user request into a crisp, actionable instruction that leverages the two contexts below.
-- Keep the instruction <= {instruction_budget} tokens (approx).
-- Be specific and structured.
-- Include concrete references (issue #, URLs, table/column names) when present.
-- Do NOT include any 'Context:' sections—return only the instruction text.
+        sys = "You are a specialized prompt optimizer for AI research paper analysis workflows."
+        prompt = f"""Rewrite the user request into a crisp, actionable instruction optimized for research paper analysis and GitHub issue integration.
+
+**Optimization Guidelines:**
+- Keep the instruction <= {instruction_budget} tokens (approx)
+- Be specific and structured for research paper matching
+- Include concrete references (issue #, URLs, table/column names) when present
+- Focus on extracting requirements from GitHub issues and matching with research papers
+- Emphasize implementation guidance and literature review aspects
+- Do NOT include any 'Context:' sections—return only the instruction text
+
+**Research Paper Workflow Focus:**
+- Extract technical requirements from GitHub issues
+- Match requirements with relevant AI research papers
+- Provide implementation recommendations based on research findings
+- Suggest papers for literature reviews and gap analysis
 
 User request:
 {user_final}
@@ -756,7 +781,16 @@ Context B (Research Papers, summarized):
             optimized_instruction = summarize_to_tokens_dynamic(providers, optimizer, optimized_instruction, instruction_budget)
     except Exception as e:
         dbg["optimizer_error"] = str(e)
-        optimized_instruction = f"Answer the user request using both GitHub issues/comments and research paper abstracts. Be concise.\n\nUser request:\n{user_final}"
+        optimized_instruction = f"""Analyze the user request by combining GitHub issues/comments with research paper insights to provide comprehensive recommendations.
+
+**Analysis Approach:**
+- Extract project requirements and technical specifications from GitHub issues
+- Match requirements with relevant AI research papers from the database
+- Provide implementation guidance based on research findings
+- Suggest relevant papers for literature review and gap analysis
+
+User request:
+{user_final}"""
 
     total_now = est_tokens(optimized_instruction) + est_tokens(issues_sum) + est_tokens(papers_sum)
     if total_now > prompt_budget:
@@ -773,10 +807,10 @@ Context B (Research Papers, summarized):
 
     final_prompt = f"""{optimized_instruction}
 
-Context — GitHub Issues:
+**GitHub Issues Context** (Project Requirements & Specifications):
 {issues_sum or '(none)'} 
 
-Context — Research Papers:
+**Research Papers Context** (AI Research Database):
 {papers_sum or '(none)'}"""
 
     if est_tokens(final_prompt) > prompt_budget:
@@ -786,10 +820,10 @@ Context — Research Papers:
         papers_sum = summarize_to_tokens_dynamic(providers, optimizer, papers_sum, rem - half)
         final_prompt = f"""{optimized_instruction}
 
-Context — GitHub Issues:
+**GitHub Issues Context** (Project Requirements & Specifications):
 {issues_sum or '(none)'} 
 
-Context — Research Papers:
+**Research Papers Context** (AI Research Database):
 {papers_sum or '(none)'}"""
 
     return final_prompt, {

@@ -25,24 +25,37 @@
 
     <!-- Row 1: User Prompt (full width) -->
     <div class="card w-full">
-      <h3 class="font-semibold mb-2">User Prompt</h3>
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-semibold">User Prompt</h3>
+        <div class="flex gap-2">
+          <button id="btnExample1" class="px-2 py-1 text-xs rounded bg-blue-100 hover:bg-blue-200 text-blue-800">Research Papers</button>
+          <button id="btnExample2" class="px-2 py-1 text-xs rounded bg-green-100 hover:bg-green-200 text-green-800">Requirements</button>
+          <button id="btnExample3" class="px-2 py-1 text-xs rounded bg-purple-100 hover:bg-purple-200 text-purple-800">Implementation</button>
+        </div>
+      </div>
       <textarea id="userPrompt" rows="10"
         class="w-full border rounded-lg p-2"
-        placeholder="Ask something..."></textarea>
+        placeholder="Example: I need to build a recommendation system for e-commerce. What research papers and GitHub issues are relevant?"></textarea>
     </div>
 
     <!-- Row 2: Optimized Prompt (full width) -->
     <div class="card w-full">
       <div class="flex items-center justify-between">
         <h3 class="font-semibold mb-2">Optimized Prompt</h3>
-        <button id="btnOptimize"
-          class="px-3 py-1 text-sm rounded bg-slate-100 hover:bg-slate-200 flex items-center gap-1"
-          title="Summarize → Optimize (fits context window)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          Summarize → Optimize 
-        </button>
+        <div class="flex items-center gap-2">
+          <div id="optimizeProgress" class="hidden w-32 bg-gray-200 rounded-full h-2">
+            <div id="optimizeProgressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="optimizeStatus" class="hidden text-xs text-gray-600"></span>
+          <button id="btnOptimize"
+            class="px-3 py-1 text-sm rounded bg-slate-100 hover:bg-slate-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Summarize → Optimize (fits context window)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span id="optimizeText">Summarize → Optimize</span>
+          </button>
+        </div>
       </div>
       <textarea id="optimizedPrompt" rows="10"
         class="w-full border rounded-lg p-2"
@@ -60,15 +73,19 @@
           <label class="text-sm">Model</label>
           <select id="model" class="w-full border rounded-lg p-2"></select>
         </div>
-        <div class="flex items-end justify-end">
+        <div class="flex items-end justify-end gap-2">
+          <div id="sendProgress" class="hidden w-32 bg-gray-200 rounded-full h-2">
+            <div id="sendProgressBar" class="bg-green-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="sendStatus" class="hidden text-xs text-gray-600"></span>
           <button id="btnSend"
-            class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl shadow hover:bg-blue-700">
+            class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl shadow hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M3 10l9-6 9 6-9 6-9-6zm9 12V10"/>
             </svg>
-            Send
+            <span id="sendText">Send</span>
           </button>
         </div>
       </div>

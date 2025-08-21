@@ -79,6 +79,36 @@ Show #number, title, est, labels, url, and 1-line “why it fits now”. Priorit
     text:
 `Groom the next sprint backlog from {owner_repo} (OPEN issues only). Flag duplicates, suggest label fixes, and propose top 10 in execution order with a crisp next action each.`
   },
+  {
+    id: "research_papers",
+    name: "Research Paper Analysis",
+    text:
+`Analyze GitHub issues from {owner_repo} and match them with relevant AI research papers. Provide:
+1. Key requirements extracted from GitHub issues
+2. Relevant research papers that address these requirements
+3. Implementation recommendations based on research findings
+4. Gap analysis and potential research opportunities`
+  },
+  {
+    id: "literature_review",
+    name: "Literature Review",
+    text:
+`Conduct a literature review using GitHub issues from {owner_repo} and research papers. Focus on:
+1. Current state of the field based on GitHub discussions
+2. Relevant research papers and their contributions
+3. Research gaps identified from GitHub issues
+4. Future research directions and collaboration opportunities`
+  },
+  {
+    id: "implementation_guide",
+    name: "Implementation Guide",
+    text:
+`Create an implementation guide by combining GitHub issues from {owner_repo} with research paper insights. Include:
+1. Technical requirements from GitHub issues
+2. Recommended approaches from research papers
+3. Architecture and design patterns
+4. Potential challenges and mitigation strategies`
+  },
 ];
 
 const MODEL_OPTIONS = {
@@ -514,24 +544,142 @@ function renderMcpSelected() {
     : `<span class="text-slate-500 text-sm">No connectors enabled</span>`;
 }
 
+/* ----------------------------- Progress Bar Helpers ----------------------------- */
+
+function showProgress(progressId, statusId, progressBarId, textId, buttonId) {
+  $(progressId).classList.remove('hidden');
+  $(statusId).classList.remove('hidden');
+  $(buttonId).disabled = true;
+  $(textId).textContent = 'Processing...';
+  logDebug('progress.show', { 
+    progressId, 
+    statusId, 
+    progressBarId, 
+    textId, 
+    buttonId,
+    timestamp: new Date().toISOString()
+  });
+}
+
+function updateProgress(progressBarId, statusId, percent, status) {
+  $(progressBarId).style.width = `${percent}%`;
+  $(statusId).textContent = status;
+  logDebug('progress.update', { 
+    progressBarId, 
+    statusId, 
+    percent, 
+    status,
+    timestamp: new Date().toISOString()
+  });
+}
+
+function hideProgress(progressId, statusId, textId, buttonId, originalText) {
+  $(progressId).classList.add('hidden');
+  $(statusId).classList.add('hidden');
+  $(buttonId).disabled = false;
+  $(textId).textContent = originalText;
+  // Reset progress bar width
+  const progressBar = $(progressId).querySelector('div');
+  if (progressBar) {
+    progressBar.style.width = '0%';
+  }
+  logDebug('progress.hide', { 
+    progressId, 
+    statusId, 
+    textId, 
+    buttonId, 
+    originalText,
+    timestamp: new Date().toISOString()
+  });
+}
+
 /* ----------------------------- Actions: optimize & send ----------------------------- */
 
 async function optimize() {
   const userPrompt = $('#userPrompt').value;
   const provider = $('#provider').value || 'anthropic';
   const model = $('#model').value || '';
-  const res = await fetch('/api/optimize', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ user_prompt: userPrompt, provider, model })
-  });
-  const data = await res.json();
-  $('#optimizedPrompt').value = data.optimized_prompt || userPrompt;
+  
+  // Show progress
+  showProgress('#optimizeProgress', '#optimizeStatus', '#optimizeProgressBar', '#optimizeText', '#btnOptimize');
+  
+  try {
+    // Simulate progress steps with detailed logging
+    logDebug('optimize.start', { userPrompt, provider, model });
+    
+    updateProgress('#optimizeProgressBar', '#optimizeStatus', 10, 'Fetching GitHub issues...');
+    logDebug('optimize.progress', { step: 'fetching_github_issues', percent: 10, status: 'Fetching GitHub issues...' });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    updateProgress('#optimizeProgressBar', '#optimizeStatus', 30, 'Fetching research papers...');
+    logDebug('optimize.progress', { step: 'fetching_research_papers', percent: 30, status: 'Fetching research papers...' });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    updateProgress('#optimizeProgressBar', '#optimizeStatus', 50, 'Summarizing content...');
+    logDebug('optimize.progress', { step: 'summarizing_content', percent: 50, status: 'Summarizing content...' });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    updateProgress('#optimizeProgressBar', '#optimizeStatus', 70, 'Optimizing prompt...');
+    logDebug('optimize.progress', { step: 'optimizing_prompt', percent: 70, status: 'Optimizing prompt...' });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    updateProgress('#optimizeProgressBar', '#optimizeStatus', 80, 'Building request...');
+    logDebug('optimize.progress', { step: 'building_request', percent: 80, status: 'Building request...' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+         updateProgress('#optimizeProgressBar', '#optimizeStatus', 85, 'Sending to API...');
+     logDebug('optimize.progress', { step: 'sending_to_api', percent: 85, status: 'Sending to API...' });
+     
+     const requestBody = { user_prompt: userPrompt, provider, model };
+     logDebug('optimize.request', { url: '/api/optimize', method: 'POST', body: requestBody });
+     
+     // Simulate MCP calls progress
+     updateProgress('#optimizeProgressBar', '#optimizeStatus', 87, 'Calling GitHub MCP...');
+     logDebug('optimize.progress', { step: 'calling_github_mcp', percent: 87, status: 'Calling GitHub MCP...' });
+     await new Promise(resolve => setTimeout(resolve, 150));
+     
+     updateProgress('#optimizeProgressBar', '#optimizeStatus', 89, 'Calling PostgreSQL MCP...');
+     logDebug('optimize.progress', { step: 'calling_postgresql_mcp', percent: 89, status: 'Calling PostgreSQL MCP...' });
+     await new Promise(resolve => setTimeout(resolve, 150));
+     
+     updateProgress('#optimizeProgressBar', '#optimizeStatus', 91, 'Sending to LLM...');
+     logDebug('optimize.progress', { step: 'sending_to_llm', percent: 91, status: 'Sending to LLM...' });
+     
+     const res = await fetch('/api/optimize', {
+       method:'POST',
+       headers:{'Content-Type':'application/json'},
+       body: JSON.stringify(requestBody)
+     });
+    
+    updateProgress('#optimizeProgressBar', '#optimizeStatus', 95, 'Processing response...');
+    logDebug('optimize.progress', { step: 'processing_response', percent: 95, status: 'Processing response...', statusCode: res.status });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    updateProgress('#optimizeProgressBar', '#optimizeStatus', 100, 'Complete!');
+    logDebug('optimize.progress', { step: 'complete', percent: 100, status: 'Complete!' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    const data = await res.json();
+    logDebug('optimize.response', { status: res.status, data: data });
+    
+    $('#optimizedPrompt').value = data.optimized_prompt || userPrompt;
 
-  // Rich debug
-  renderDebug(data.debug);
-  logDebug('optimize', data.debug);
-  activateTab('debug');
+    // Rich debug
+    renderDebug(data.debug);
+    logDebug('optimize.success', { optimized_prompt: data.optimized_prompt, debug: data.debug });
+    activateTab('debug');
+    
+  } catch (error) {
+    updateProgress('#optimizeProgressBar', '#optimizeStatus', 100, 'Error occurred');
+    logDebug('optimize.error', { error: error.message, stack: error.stack });
+    console.error('Optimize error:', error);
+  } finally {
+    // Hide progress after a short delay
+    setTimeout(() => {
+      hideProgress('#optimizeProgress', '#optimizeStatus', '#optimizeText', '#btnOptimize', 'Summarize → Optimize');
+      logDebug('optimize.complete', { finalStatus: 'Progress hidden, operation complete' });
+    }, 1000);
+  }
 }
 
 async function send() {
@@ -540,28 +688,105 @@ async function send() {
   const userPrompt = $('#userPrompt').value;
   const optimizedPrompt = $('#optimizedPrompt').value || userPrompt;
 
-  const res = await fetch('/api/chat', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ provider, model, user_prompt: userPrompt, optimized_prompt: optimizedPrompt })
-  });
-  const data = await res.json();
+  // Show progress
+  showProgress('#sendProgress', '#sendStatus', '#sendProgressBar', '#sendText', '#btnSend');
+  
+  try {
+    // Simulate progress steps with detailed logging
+    logDebug('send.start', { userPrompt, optimizedPrompt, provider, model });
+    
+    updateProgress('#sendProgressBar', '#sendStatus', 10, 'Fetching fresh data...');
+    logDebug('send.progress', { step: 'fetching_fresh_data', percent: 10, status: 'Fetching fresh data...' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    updateProgress('#sendProgressBar', '#sendStatus', 30, 'Building optimized prompt...');
+    logDebug('send.progress', { step: 'building_optimized_prompt', percent: 30, status: 'Building optimized prompt...' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    updateProgress('#sendProgressBar', '#sendStatus', 50, 'Sending to AI provider...');
+    logDebug('send.progress', { step: 'sending_to_ai_provider', percent: 50, status: 'Sending to AI provider...' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    updateProgress('#sendProgressBar', '#sendStatus', 70, 'Processing response...');
+    logDebug('send.progress', { step: 'processing_response', percent: 70, status: 'Processing response...' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    updateProgress('#sendProgressBar', '#sendStatus', 80, 'Building request...');
+    logDebug('send.progress', { step: 'building_request', percent: 80, status: 'Building request...' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+         updateProgress('#sendProgressBar', '#sendStatus', 85, 'Sending to AI provider...');
+     logDebug('send.progress', { step: 'sending_to_ai_provider_api', percent: 85, status: 'Sending to AI provider...' });
+     
+     const requestBody = { provider, model, user_prompt: userPrompt, optimized_prompt: optimizedPrompt };
+     logDebug('send.request', { url: '/api/chat', method: 'POST', body: requestBody });
+     
+     // Simulate MCP calls progress
+     updateProgress('#sendProgressBar', '#sendStatus', 87, 'Calling GitHub MCP...');
+     logDebug('send.progress', { step: 'calling_github_mcp', percent: 87, status: 'Calling GitHub MCP...' });
+     await new Promise(resolve => setTimeout(resolve, 150));
+     
+     updateProgress('#sendProgressBar', '#sendStatus', 89, 'Calling PostgreSQL MCP...');
+     logDebug('send.progress', { step: 'calling_postgresql_mcp', percent: 89, status: 'Calling PostgreSQL MCP...' });
+     await new Promise(resolve => setTimeout(resolve, 150));
+     
+     updateProgress('#sendProgressBar', '#sendStatus', 91, 'Sending to LLM...');
+     logDebug('send.progress', { step: 'sending_to_llm', percent: 91, status: 'Sending to LLM...' });
+     
+     const res = await fetch('/api/chat', {
+       method:'POST',
+       headers:{'Content-Type':'application/json'},
+       body: JSON.stringify(requestBody)
+     });
+    
+    updateProgress('#sendProgressBar', '#sendStatus', 95, 'Parsing response...');
+    logDebug('send.progress', { step: 'parsing_response', percent: 95, status: 'Parsing response...', statusCode: res.status });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    updateProgress('#sendProgressBar', '#sendStatus', 100, 'Complete!');
+    logDebug('send.progress', { step: 'complete', percent: 100, status: 'Complete!' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    const data = await res.json();
+    logDebug('send.response', { status: res.status, data: data });
 
-  const convo = $('#conversation');
-  const userDiv = document.createElement('div');
-  userDiv.className="p-2 rounded bg-slate-100";
-  userDiv.textContent = userPrompt;
-  const botDiv = document.createElement('div');
-  botDiv.className="p-2 rounded bg-blue-50";
-  botDiv.textContent = data.structured || data.text || "(no response)";
-  convo.appendChild(userDiv);
-  convo.appendChild(botDiv);
-  convo.scrollTop = convo.scrollHeight;
+    const convo = $('#conversation');
+    const userDiv = document.createElement('div');
+    userDiv.className="p-2 rounded bg-slate-100";
+    userDiv.textContent = userPrompt;
+    const botDiv = document.createElement('div');
+    botDiv.className="p-2 rounded bg-blue-50";
+    botDiv.textContent = data.structured || data.text || "(no response)";
+    convo.appendChild(userDiv);
+    convo.appendChild(botDiv);
+    convo.scrollTop = convo.scrollHeight;
 
-  // Rich debug
-  renderDebug(data.debug);
-  logDebug('chat', data.debug);
-  activateTab('debug');
+    logDebug('send.conversation', { 
+      userMessage: userPrompt, 
+      botResponse: data.structured || data.text || "(no response)",
+      conversationLength: convo.children.length 
+    });
+
+    // Rich debug
+    renderDebug(data.debug);
+    logDebug('send.success', { 
+      structured: data.structured, 
+      text: data.text, 
+      debug: data.debug 
+    });
+    activateTab('debug');
+    
+  } catch (error) {
+    updateProgress('#sendProgressBar', '#sendStatus', 100, 'Error occurred');
+    logDebug('send.error', { error: error.message, stack: error.stack });
+    console.error('Send error:', error);
+  } finally {
+    // Hide progress after a short delay
+    setTimeout(() => {
+      hideProgress('#sendProgress', '#sendStatus', '#sendText', '#btnSend', 'Send');
+      logDebug('send.complete', { finalStatus: 'Progress hidden, operation complete' });
+    }, 1000);
+  }
 }
 
 /* ----------------------------- Init ----------------------------- */
@@ -572,6 +797,28 @@ function bindUI() {
   $('#btnOptimize').addEventListener('click', optimize);
   $('#btnSend').addEventListener('click', send);
   bindPromptTemplateUI();
+  
+  // Research Paper Workflow Example Prompts
+  $('#btnExample1').addEventListener('click', () => {
+    $('#userPrompt').value = `I need to build a recommendation system for e-commerce. What research papers and GitHub issues are relevant to this project? Please provide:
+1. Key research papers on recommendation systems
+2. Relevant GitHub issues that might inform the implementation
+3. Implementation guidance based on the research findings`;
+  });
+  
+  $('#btnExample2').addEventListener('click', () => {
+    $('#userPrompt').value = `Extract project requirements from GitHub issues and match them with relevant AI research papers. Focus on:
+1. Technical specifications and implementation needs
+2. Research papers that address similar requirements
+3. Gap analysis between requirements and available research`;
+  });
+  
+  $('#btnExample3').addEventListener('click', () => {
+    $('#userPrompt').value = `Based on the GitHub issues and research papers, provide implementation guidance for building an AI-powered system. Include:
+1. Recommended approaches from research papers
+2. Technical architecture suggestions
+3. Potential challenges and solutions`;
+  });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

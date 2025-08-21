@@ -24,6 +24,23 @@
       background: #eef2ff; color: #3730a3; font-size: 12px; margin-right: 6px;
       border: 1px solid #e0e7ff;
     }
+    /* Progress bar animations */
+    #optimizeProgress, #sendProgress {
+      transition: all 0.3s ease-in-out;
+    }
+    #optimizeProgressBar, #sendProgressBar {
+      transition: width 0.3s ease-in-out;
+    }
+    /* Button disabled state */
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    /* Status text styling */
+    #optimizeStatus, #sendStatus {
+      min-width: 120px;
+      text-align: center;
+    }
   </style>
   {% block head %}{% endblock %}
 </head>
