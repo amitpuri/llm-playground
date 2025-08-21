@@ -157,6 +157,102 @@ npm install @modelcontextprotocol/inspector
 
 Once you've tested the MCP servers with Inspector, run the individual clients to see them in action.
 
+### Database Setup - Sample Research Data
+
+Before running the PostgreSQL MCP client, you need to set up the database with sample research data.
+
+#### Quick Setup
+
+1. **Install dependencies:**
+   ```bash
+   cd database
+   pip install -r requirements.txt
+   ```
+
+2. **Configure environment (optional):**
+   ```bash
+   cp env_example.txt .env
+   # Edit .env file to customize database connection if needed
+   ```
+
+3. **Run the setup script:**
+   ```bash
+   python setup_database.py
+   ```
+
+#### What the Setup Creates
+
+**Schema: `research_papers`**
+
+**Tables:**
+- **`ai_research_papers`** - Main table containing AI research papers
+  - `id` (SERIAL PRIMARY KEY)
+  - `title` (VARCHAR(500))
+  - `authors` (TEXT[]) - Array of author names
+  - `abstract` (TEXT)
+  - `publication_date` (DATE)
+  - `journal` (VARCHAR(200))
+  - `doi` (VARCHAR(100))
+  - `keywords` (TEXT[]) - Array of keywords
+  - `citation_count` (INTEGER)
+  - `created_at` (TIMESTAMP)
+  - `updated_at` (TIMESTAMP)
+
+- **`research_topics`** - Research topic categories
+  - `id` (SERIAL PRIMARY KEY)
+  - `name` (VARCHAR(200) UNIQUE)
+  - `description` (TEXT)
+  - `parent_topic_id` (INTEGER) - Self-referencing for hierarchical topics
+  - `created_at` (TIMESTAMP)
+
+- **`paper_topics`** - Junction table linking papers to topics
+  - `paper_id` (INTEGER) - Foreign key to ai_research_papers
+  - `topic_id` (INTEGER) - Foreign key to research_topics
+  - Primary key: (paper_id, topic_id)
+
+**Views:**
+- **`papers_with_topics`** - Convenient view showing papers with their associated topics
+
+**Sample Data:**
+- **7 Research Topics:** Machine Learning, Natural Language Processing, Computer Vision, Deep Learning, Reinforcement Learning, AI Ethics, Large Language Models
+- **5 Research Papers:** Including famous papers like "Attention Is All You Need", "BERT", "GANs", "ResNet", and "AlphaGo"
+
+#### Database Connection
+
+The setup uses the following connection string by default:
+```
+postgresql://user:password@localhost:5432/dbname
+```
+
+**Note**: If your password contains special characters, URL-encode them. For example:
+- `@` becomes `%40`
+- `#` becomes `%23`
+- `%` becomes `%25`
+- `&` becomes `%26`
+
+Example: `password@123` becomes `password%40123`
+
+You can customize this by:
+1. Creating a `.env` file with your own `DATABASE_URI`
+2. Setting the `DATABASE_URI` environment variable
+3. The script will fall back to the default if neither is provided
+
+#### Verification
+
+After setup, you can verify the installation by running:
+
+```sql
+-- Check tables
+SELECT schemaname, tablename FROM pg_tables WHERE schemaname = 'research_papers';
+
+-- Check sample data
+SELECT COUNT(*) FROM research_papers.ai_research_papers;
+SELECT COUNT(*) FROM research_papers.research_topics;
+
+-- View papers with topics
+SELECT title, topics FROM research_papers.papers_with_topics LIMIT 3;
+```
+
 ### GitHub MCP Server - Reading Issues
 
 The GitHub client allows you to fetch and analyze GitHub issues using the MCP protocol.
@@ -280,20 +376,7 @@ python diagnose.py
 
 The PostgreSQL client enables you to query and analyze local PostgreSQL databases using MCP.
 
-### Database Setup
-
-First, set up the database with sample data:
-
-```bash
-cd database
-pip install -r requirements.txt
-python setup_database.py
-```
-
-This will create:
-- A `research_papers` schema with tables for AI research papers
-- Sample data including famous papers like "Attention Is All You Need", "BERT", "GANs", etc.
-- Proper indexes and views for efficient querying
+**Prerequisite**: Make sure you've completed the [Database Setup](#database-setup---sample-research-data) above before running this client.
 
 ### Installation
 
@@ -614,12 +697,17 @@ mcp-inspector
 
 ### Step 2: Run Individual MCP Clients
 ```bash
+# Set up database first (required for PostgreSQL client)
+cd database
+pip install -r requirements.txt
+python setup_database.py
+
 # GitHub Issues Client
-cd github-issues
+cd ../github-issues
 python main.py
 
 # PostgreSQL Client (in another terminal)
-cd pg
+cd ../pg
 python main.py
 ```
 
