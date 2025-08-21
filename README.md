@@ -474,6 +474,47 @@ result = await client.call_tool("execute_sql", {
 ![Authorization flow](https://raw.githubusercontent.com/Azure-Samples/remote-mcp-apim-functions-python/refs/heads/main/infra/app/apim-oauth/diagrams/images/mcp-client-auth.png)
 
 
+- [Context Engineering: An Emerging Concept in the MCP Ecosystem](https://github.com/microsoft/mcp-for-beginners/tree/main/05-AdvancedTopics/mcp-contextengineering)
+
+  
+```mermaid
+graph LR
+    A[User Input] --> B[Context Assembly]
+    B --> C[Model Processing]
+    C --> D[Response Generation]
+    D --> E[State Management]
+    E -->|Next Interaction| A
+    
+    style A fill:#A8D5BA,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style B fill:#7FB3D5,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style C fill:#F5CBA7,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style D fill:#C39BD3,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style E fill:#F9E79F,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+```
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant MCP Server
+    participant AI Model
+
+    User->>App: Ask Question
+    App->>MCP Server: Initial Request
+    MCP Server->>AI Model: Minimal Context
+    AI Model->>MCP Server: Initial Response
+    
+    alt Needs More Context
+        MCP Server->>MCP Server: Identify Missing Context
+        MCP Server->>MCP Server: Load Additional Context
+        MCP Server->>AI Model: Enhanced Context
+        AI Model->>MCP Server: Final Response
+    end
+    
+    MCP Server->>App: Response
+    App->>User: Answer
+```
+
 ## 🤝 Contributing
 
 1. Fork the repository
