@@ -247,6 +247,7 @@ playground/static/uploads/
 playground/temp/
 playground/cache/
 playground/outputs/
+playground/demo-script
 
 # API Keys and sensitive configuration
 **/api_keys.txt
