@@ -403,6 +403,107 @@ result = await client.call_tool("execute_sql", {
 - Check server logs for detailed error messages
 - Verify environment variable configuration
 
+## 🔍 MCP Inspector
+
+MCP Inspector is a powerful debugging and development tool that allows you to inspect, test, and debug MCP servers interactively. It's particularly useful for understanding how your MCP servers work and troubleshooting issues.
+
+### Installation
+
+```bash
+# Install MCP Inspector globally
+npm install -g @modelcontextprotocol/inspector
+
+# Or install locally in your project
+npm install @modelcontextprotocol/inspector
+```
+
+### Using MCP Inspector with GitHub Issues
+
+1. **Start the GitHub MCP Server**:
+   ```bash
+   cd github-issues
+   python main.py
+   ```
+
+2. **Launch MCP Inspector**:
+   ```bash
+   mcp-inspector
+   ```
+
+3. **Connect to GitHub MCP Server**:
+   - In MCP Inspector, click "Connect to Server"
+   - Select "GitHub" from the server list or enter the server URL
+   - Configure authentication with your GitHub token
+   - The server URL is typically: `https://api.githubcopilot.com/mcp/`
+
+4. **Explore Available Tools**:
+   - Browse the available tools in the left sidebar
+   - Test individual tools with different parameters
+   - View tool schemas and documentation
+   - Monitor request/response flows
+
+5. **Test GitHub Operations**:
+   ```json
+   // Example: List issues
+   {
+     "owner": "amitpuri",
+     "repo": "mcp-clients-playground",
+     "state": "open"
+   }
+   ```
+
+### Using MCP Inspector with PostgreSQL
+
+1. **Start the PostgreSQL MCP Server**:
+   ```bash
+   # Set your database connection
+   export DATABASE_URI="postgresql://user:password@localhost:5432/dbname"
+   
+   # Start the PostgreSQL MCP server
+   postgres-mcp --access-mode=unrestricted --transport=sse
+   ```
+
+2. **Launch MCP Inspector**:
+   ```bash
+   mcp-inspector
+   ```
+
+3. **Connect to PostgreSQL MCP Server**:
+   - Click "Connect to Server"
+   - Select "PostgreSQL" or enter: `http://localhost:8000/sse`
+   - No authentication required for local setup
+
+4. **Explore Database Tools**:
+   - **List Schemas**: View available database schemas
+   - **List Objects**: Browse tables, views, and other database objects
+   - **Execute SQL**: Run custom SQL queries
+   - **Get Object Details**: Inspect table structures and metadata
+
+5. **Test Database Operations**:
+   ```sql
+   -- Example: Query research papers
+   SELECT url, title, date, abstract, category 
+   FROM research_papers.ai_research_papers 
+   ORDER BY date DESC 
+   LIMIT 5;
+   ```
+
+### MCP Inspector Features
+
+- **Interactive Tool Testing**: Test individual MCP tools with custom parameters
+- **Request/Response Monitoring**: View detailed request and response data
+- **Schema Inspection**: Browse tool schemas and documentation
+- **Error Debugging**: Identify and troubleshoot connection and authentication issues
+- **Performance Analysis**: Monitor tool execution times and performance
+- **Multi-Server Support**: Connect to multiple MCP servers simultaneously
+
+### Troubleshooting with MCP Inspector
+
+- **Connection Issues**: Use the connection status indicator to verify server connectivity
+- **Authentication Problems**: Check token configuration and permissions
+- **Tool Errors**: View detailed error messages and stack traces
+- **Performance Issues**: Monitor execution times and identify bottlenecks
+
 ### Web Playground Troubleshooting
 
 - **Provider Not Working**: Check API keys and base URLs in settings
