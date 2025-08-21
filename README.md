@@ -57,13 +57,109 @@ mcp-clients-playground/
 
 - Python 3.8+
 - pip or uv package manager
+- Node.js and npm (for MCP Inspector)
 - Access to AI provider APIs (OpenAI, Anthropic, Google, Ollama)
 - GitHub API access (for GitHub client)
 - PostgreSQL database (for PostgreSQL client)
 
-## 🌐 Web Playground (NEW!)
+## 🎯 Demo Flow: From Testing to End-to-End
 
-The web playground provides an interactive interface for testing multiple AI providers and MCP connectors simultaneously.
+This playground follows a logical progression for learning and testing MCP servers:
+
+1. **🔍 MCP Inspector** - Test individual MCP servers interactively
+2. **📊 Individual MCP Clients** - Run GitHub and PostgreSQL MCP clients separately
+3. **🌐 Web Playground** - End-to-end experience with multiple AI providers and MCP connectors
+
+## 🔍 Step 1: MCP Inspector - Interactive Testing
+
+MCP Inspector is a powerful debugging and development tool that allows you to inspect, test, and debug MCP servers interactively. Start here to understand how your MCP servers work.
+
+### Installation
+
+```bash
+# Install MCP Inspector globally
+npm install -g @modelcontextprotocol/inspector
+
+# Or install locally in your project
+npm install @modelcontextprotocol/inspector
+```
+
+### Testing GitHub MCP Server
+
+1. **Launch MCP Inspector with GitHub MCP**:
+   ```bash
+   # Direct command line connection to GitHub MCP
+   mcp-inspector --url https://api.githubcopilot.com/mcp --header "Authorization: Bearer ghp_XXXXXXXXXXXXXXXXXXXX" --token ghp_XXXXXXXXXXXXXXXXXXXX
+   ```
+   
+   **Note**: Replace `ghp_XXXXXXXXXXXXXXXXXXXX` with your actual GitHub Personal Access Token.
+
+2. **Alternative: Launch MCP Inspector GUI**:
+   ```bash
+   mcp-inspector
+   ```
+   
+   Then connect to GitHub MCP Server:
+   - Click "Connect to Server"
+   - Select "GitHub" or enter: `https://api.githubcopilot.com/mcp/`
+   - Configure authentication with your GitHub token
+
+3. **Test GitHub Operations**:
+   ```json
+   // Example: List issues
+   {
+     "owner": "amitpuri",
+     "repo": "mcp-clients-playground",
+     "state": "open"
+   }
+   ```
+
+### Testing PostgreSQL MCP Server
+
+1. **Set up Database Connection**:
+   ```bash
+   # Set your database connection
+   export DATABASE_URI="postgresql://user:password@localhost:5432/dbname"
+   
+   # Start the PostgreSQL MCP server
+   postgres-mcp --access-mode=unrestricted --transport=sse
+   ```
+
+2. **Launch MCP Inspector**:
+   ```bash
+   mcp-inspector
+   ```
+
+3. **Connect to PostgreSQL MCP Server**:
+   - Click "Connect to Server"
+   - Select "PostgreSQL" or enter: `http://localhost:8000/sse`
+   - No authentication required for local setup
+
+4. **Test Database Operations**:
+   ```sql
+   -- Example: Query research papers
+   SELECT url, title, date, abstract, category 
+   FROM research_papers.ai_research_papers 
+   ORDER BY date DESC 
+   LIMIT 5;
+   ```
+
+### MCP Inspector Features
+
+- **Interactive Tool Testing**: Test individual MCP tools with custom parameters
+- **Request/Response Monitoring**: View detailed request and response data
+- **Schema Inspection**: Browse tool schemas and documentation
+- **Error Debugging**: Identify and troubleshoot connection and authentication issues
+- **Performance Analysis**: Monitor tool execution times and performance
+- **Multi-Server Support**: Connect to multiple MCP servers simultaneously
+
+## 📊 Step 2: Individual MCP Clients
+
+Once you've tested the MCP servers with Inspector, run the individual clients to see them in action.
+
+### GitHub MCP Server - Reading Issues
+
+The GitHub client allows you to fetch and analyze GitHub issues using the MCP protocol.
 
 ### Features
 
@@ -180,7 +276,7 @@ python diagnose.py
 - Diagnostic tools for troubleshooting
 - Support for GraphQL-style responses
 
-## 🗄️ PostgreSQL MCP Server - Reading Local Database
+### PostgreSQL MCP Server - Reading Local Database
 
 The PostgreSQL client enables you to query and analyze local PostgreSQL databases using MCP.
 
@@ -265,6 +361,70 @@ python main.py
 - Retrieve sample data from tables
 - JSON-safe data handling
 - Support for complex data types (datetime, UUID, etc.)
+
+## 🌐 Step 3: Web Playground - End-to-End Experience
+
+The web playground provides an interactive interface for testing multiple AI providers and MCP connectors simultaneously. This is the final step where you can see everything working together.
+
+### Features
+
+- **Multi-Provider Support**: OpenAI, Anthropic, Google Gemini, and Ollama
+- **MCP Integration**: GitHub and PostgreSQL MCP connectors
+- **Smart Prompt Optimization**: Uses Ollama (gemma3:270m) to optimize prompts
+- **Real-time Chat Interface**: Interactive conversation with AI models
+- **Settings Management**: Web-based configuration interface
+- **Debug Logging**: Comprehensive logging for troubleshooting
+
+### Installation
+
+```bash
+cd playground
+pip install -r requirements.txt
+```
+
+### Configuration
+
+1. Copy the environment template:
+```bash
+cp ../github-issues/env_example.txt .env
+```
+
+2. Configure your environment variables:
+```bash
+# AI Provider Configuration
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+GOOGLE_API_KEY=your_google_api_key
+OLLAMA_BASE_URL=http://localhost:11434
+
+# MCP Configuration
+GITHUB_TOKEN=your_github_personal_access_token
+MCP_SERVER_URL=https://api.githubcopilot.com/mcp/
+MCP_SSE_SERVER_URL=http://localhost:8000/sse
+GITHUB_REPO=owner/repo
+
+# Optional: Custom settings file path
+PLAYGROUND_SETTINGS_PATH=settings.json
+```
+
+**🔒 Security Note**: The `settings.json` file is automatically ignored by git. Your API keys and tokens will be loaded from environment variables and stored locally only.
+
+### Usage
+
+```bash
+# Start the web playground
+python app.py
+```
+
+Then open your browser to `http://localhost:5000`
+
+### Web Interface Features
+
+- **Chat Tab**: Interactive conversation with selected AI providers
+- **Settings Tab**: Configure AI providers and MCP connectors
+- **Debug Tab**: View detailed logs and error messages
+- **Prompt Optimization**: Automatically optimize prompts using Ollama
+- **MCP Connector Status**: Visual indicators for enabled MCP services
 
 ## 🔧 Configuration
 
@@ -403,117 +563,12 @@ result = await client.call_tool("execute_sql", {
 - Check server logs for detailed error messages
 - Verify environment variable configuration
 
-## 🔍 MCP Inspector
-
-MCP Inspector is a powerful debugging and development tool that allows you to inspect, test, and debug MCP servers interactively. It's particularly useful for understanding how your MCP servers work and troubleshooting issues.
-
-### Installation
-
-```bash
-# Install MCP Inspector globally
-npm install -g @modelcontextprotocol/inspector
-
-# Or install locally in your project
-npm install @modelcontextprotocol/inspector
-```
-
-### Using MCP Inspector with GitHub Issues
-
-1. **Start the GitHub MCP Server**:
-   ```bash
-   cd github-issues
-   python main.py
-   ```
-
-2. **Launch MCP Inspector with GitHub MCP**:
-   ```bash
-   # Direct command line connection to GitHub MCP
-   mcp-inspector --url https://api.githubcopilot.com/mcp --header "Authorization: Bearer ghp_XXXXXXXXXXXXXXXXXXXX" --token ghp_XXXXXXXXXXXXXXXXXXXX
-   ```
-   
-   **Note**: Replace `ghp_XXXXXXXXXXXXXXXXXXXX` with your actual GitHub Personal Access Token.
-
-3. **Alternative: Launch MCP Inspector GUI**:
-   ```bash
-   mcp-inspector
-   ```
-
-4. **Connect to GitHub MCP Server (GUI Method)**:
-   - In MCP Inspector, click "Connect to Server"
-   - Select "GitHub" from the server list or enter the server URL
-   - Configure authentication with your GitHub token
-   - The server URL is typically: `https://api.githubcopilot.com/mcp/`
-
-4. **Explore Available Tools**:
-   - Browse the available tools in the left sidebar
-   - Test individual tools with different parameters
-   - View tool schemas and documentation
-   - Monitor request/response flows
-
-5. **Test GitHub Operations**:
-   ```json
-   // Example: List issues
-   {
-     "owner": "amitpuri",
-     "repo": "mcp-clients-playground",
-     "state": "open"
-   }
-   ```
-
-### Using MCP Inspector with PostgreSQL
-
-1. **Start the PostgreSQL MCP Server**:
-   ```bash
-   # Set your database connection
-   export DATABASE_URI="postgresql://user:password@localhost:5432/dbname"
-   
-   # Start the PostgreSQL MCP server
-   postgres-mcp --access-mode=unrestricted --transport=sse
-   ```
-
-2. **Launch MCP Inspector**:
-   ```bash
-   mcp-inspector
-   ```
-
-3. **Connect to PostgreSQL MCP Server**:
-   - Click "Connect to Server"
-   - Select "PostgreSQL" or enter: `http://localhost:8000/sse`
-   - No authentication required for local setup
-
-4. **Explore Database Tools**:
-   - **List Schemas**: View available database schemas
-   - **List Objects**: Browse tables, views, and other database objects
-   - **Execute SQL**: Run custom SQL queries
-   - **Get Object Details**: Inspect table structures and metadata
-
-5. **Test Database Operations**:
-   ```sql
-   -- Example: Query research papers
-   SELECT url, title, date, abstract, category 
-   FROM research_papers.ai_research_papers 
-   ORDER BY date DESC 
-   LIMIT 5;
-   ```
-
-### MCP Inspector Features
-
-- **Interactive Tool Testing**: Test individual MCP tools with custom parameters
-- **Request/Response Monitoring**: View detailed request and response data
-- **Schema Inspection**: Browse tool schemas and documentation
-- **Error Debugging**: Identify and troubleshoot connection and authentication issues
-- **Performance Analysis**: Monitor tool execution times and performance
-- **Multi-Server Support**: Connect to multiple MCP servers simultaneously
-
-### Troubleshooting with MCP Inspector
+### Troubleshooting
 
 - **Connection Issues**: Use the connection status indicator to verify server connectivity
 - **Authentication Problems**: Check token configuration and permissions
 - **Tool Errors**: View detailed error messages and stack traces
 - **Performance Issues**: Monitor execution times and identify bottlenecks
-
-### Web Playground Troubleshooting
-
 - **Provider Not Working**: Check API keys and base URLs in settings
 - **MCP Connectors Not Responding**: Verify MCP server URLs and authentication
 - **Prompt Optimization Failing**: Ensure Ollama is running with gemma3:270m model
@@ -540,34 +595,51 @@ npm install @modelcontextprotocol/inspector
 ### Database Setup
 - `psycopg2-binary>=2.9.0`
 
-## 🎮 Getting Started with the Playground
+## 🎮 Complete Demo Flow
 
-1. **Install Dependencies**:
-   ```bash
-   cd playground
-   pip install -r requirements.txt
-   ```
+Follow this step-by-step progression to experience the full MCP playground:
 
-2. **Configure Environment**:
-   ```bash
-   cp ../github-issues/env_example.txt .env
-   # Edit .env with your API keys
-   ```
+### Step 1: Test with MCP Inspector
+```bash
+# Install MCP Inspector
+npm install -g @modelcontextprotocol/inspector
 
-3. **Start the Server**:
-   ```bash
-   python app.py
-   ```
+# Test GitHub MCP
+mcp-inspector --url https://api.githubcopilot.com/mcp --header "Authorization: Bearer YOUR_TOKEN" --token YOUR_TOKEN
 
-4. **Access the Interface**:
-   - Open `http://localhost:5000` in your browser
-   - Go to Settings tab to configure providers and MCP connectors
-   - Use the Chat tab to interact with AI models and MCP services
+# Test PostgreSQL MCP (after starting postgres-mcp server)
+mcp-inspector
+# Connect to http://localhost:8000/sse
+```
 
-5. **Test MCP Integration**:
-   - Enable GitHub and/or PostgreSQL MCP connectors
-   - Ask questions that require data from these services
-   - Watch as the AI models use MCP tools to fetch and analyze data
+### Step 2: Run Individual MCP Clients
+```bash
+# GitHub Issues Client
+cd github-issues
+python main.py
+
+# PostgreSQL Client (in another terminal)
+cd pg
+python main.py
+```
+
+### Step 3: End-to-End Web Playground
+```bash
+# Install and configure playground
+cd playground
+pip install -r requirements.txt
+cp ../github-issues/env_example.txt .env
+# Edit .env with your API keys
+
+# Start the web playground
+python app.py
+# Open http://localhost:5000 in your browser
+```
+
+### What You'll Experience
+1. **MCP Inspector**: Interactive testing of individual MCP tools
+2. **Individual Clients**: See how each MCP server works independently
+3. **Web Playground**: Complete integration with multiple AI providers and MCP connectors
 
 ## References
 
