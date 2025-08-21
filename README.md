@@ -425,12 +425,20 @@ npm install @modelcontextprotocol/inspector
    python main.py
    ```
 
-2. **Launch MCP Inspector**:
+2. **Launch MCP Inspector with GitHub MCP**:
+   ```bash
+   # Direct command line connection to GitHub MCP
+   mcp-inspector --url https://api.githubcopilot.com/mcp --header "Authorization: Bearer ghp_XXXXXXXXXXXXXXXXXXXX" --token ghp_XXXXXXXXXXXXXXXXXXXX
+   ```
+   
+   **Note**: Replace `ghp_XXXXXXXXXXXXXXXXXXXX` with your actual GitHub Personal Access Token.
+
+3. **Alternative: Launch MCP Inspector GUI**:
    ```bash
    mcp-inspector
    ```
 
-3. **Connect to GitHub MCP Server**:
+4. **Connect to GitHub MCP Server (GUI Method)**:
    - In MCP Inspector, click "Connect to Server"
    - Select "GitHub" from the server list or enter the server URL
    - Configure authentication with your GitHub token
