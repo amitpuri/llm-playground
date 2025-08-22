@@ -1,0 +1,233 @@
+<!-- Chat Input Component -->
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <!-- User Prompt Section -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-2">
+            <label for="userPrompt" class="block text-sm font-medium text-gray-700">
+                User Prompt
+            </label>
+            <!-- Navigation Tabs -->
+            <div class="flex space-x-1">
+                <button 
+                    class="prompt-tab px-3 py-1 text-xs bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors prompt-tab-active" 
+                    data-tab="research-papers"
+                    data-prompt="Analyze GitHub issues from {owner_repo} and match them with relevant AI research papers. Provide: 1. Key requirements extracted from GitHub issues 2. Relevant research papers that address these requirements 3. Implementation recommendations based on research findings 4. Gap analysis and potential research opportunities"
+                >
+                    Research Papers
+                </button>
+                <button 
+                    class="prompt-tab px-3 py-1 text-xs bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors" 
+                    data-tab="requirements"
+                    data-prompt="From {owner_repo}, extract and analyze requirements from GitHub issues. Focus on: 1. Functional requirements from issue descriptions 2. Technical requirements from labels and comments 3. Priority levels and dependencies 4. Acceptance criteria and success metrics 5. Implementation timeline and resource needs"
+                >
+                    Requirements
+                </button>
+                <button 
+                    class="prompt-tab px-3 py-1 text-xs bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors" 
+                    data-tab="implementation"
+                    data-prompt="Create an implementation guide by combining GitHub issues from {owner_repo} with research paper insights. Include: 1. Technical requirements from GitHub issues 2. Recommended approaches from research papers 3. Architecture and design patterns 4. Potential challenges and mitigation strategies 5. Step-by-step implementation roadmap"
+                >
+                    Implementation
+                </button>
+            </div>
+        </div>
+        <textarea 
+            id="userPrompt" 
+            rows="8" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent prompt-textarea"
+            placeholder="Enter your prompt here..."
+        ></textarea>
+    </div>
+    
+    <!-- Context Window Information -->
+    <div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div class="flex items-center justify-between text-sm">
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-600">User Prompt:</span>
+                    <span id="userPromptChars" class="font-mono text-gray-800">0 chars</span>
+                    <span id="userPromptTokens" class="text-gray-500">(~0 tokens)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-600">Optimized:</span>
+                    <span id="optimizedPromptChars" class="font-mono text-gray-800">0 chars</span>
+                    <span id="optimizedPromptTokens" class="text-gray-500">(~0 tokens)</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-gray-600">Model Context:</span>
+                <span id="modelContextWindow" class="font-mono text-blue-600">Unknown</span>
+                <span class="text-gray-500">tokens</span>
+            </div>
+        </div>
+        <div class="mt-2">
+            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div id="contextUsageBar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span id="contextUsageText">0% used</span>
+                <span id="contextRemainingText">0 tokens remaining</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Optimized Prompt Section -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-2">
+            <label for="optimizedPrompt" class="block text-sm font-medium text-gray-700">
+                Optimized Prompt
+            </label>
+            <!-- Optimize Button with Icon -->
+            <button 
+                id="btnOptimize" 
+                class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                <span>Optimize</span>
+            </button>
+        </div>
+        
+        <!-- Optimized Prompt Token Usage Information -->
+        <div class="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-600">Optimized Prompt:</span>
+                        <span id="optimizedPromptDetailedChars" class="font-mono text-gray-800">0 chars</span>
+                        <span id="optimizedPromptDetailedTokens" class="text-gray-500">(~0 tokens)</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-600">Model Context:</span>
+                    <span id="optimizedModelContextWindow" class="font-mono text-blue-600">Unknown</span>
+                    <span class="text-gray-500">tokens</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="optimizedContextUsageBar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <span id="optimizedContextUsageText">0% used</span>
+                    <span id="optimizedContextRemainingText">0 tokens remaining</span>
+                </div>
+            </div>
+        </div>
+        
+        <textarea 
+            id="optimizedPrompt" 
+            rows="8" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent prompt-textarea"
+            placeholder="Optimized prompt will appear here..."
+            readonly
+        ></textarea>
+    </div>
+    
+    <!-- Usage Cap Warning -->
+    <div id="usageCapWarning" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-red-800 text-sm font-medium"></span>
+        </div>
+    </div>
+    
+    <!-- Provider Usage Information -->
+    <div id="providerUsageInfo" class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-medium text-blue-800">Provider Usage</h4>
+            <button id="resetUsageBtn" class="text-xs text-blue-600 hover:text-blue-800 underline">Reset Usage</button>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-xs">
+            <div>
+                <span class="text-blue-600">Total Tokens:</span>
+                <span id="providerTotalTokens" class="font-mono text-blue-800">0</span>
+            </div>
+            <div>
+                <span class="text-blue-600">Usage:</span>
+                <span id="providerUsagePercentage" class="font-mono text-blue-800">0%</span>
+            </div>
+            <div>
+                <span class="text-blue-600">Remaining:</span>
+                <span id="providerRemainingTokens" class="font-mono text-blue-800">0</span>
+            </div>
+            <div>
+                <span class="text-blue-600">API Calls:</span>
+                <span id="providerApiCalls" class="font-mono text-blue-800">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Optimizer Limits Information -->
+    <div id="optimizerLimitsInfo" class="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+        <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-medium text-green-800">Optimizer Limits</h4>
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <div class="grid grid-cols-3 gap-4 text-xs">
+            <div>
+                <span class="text-green-600">Max Tokens:</span>
+                <span id="optimizerMaxTokens" class="font-mono text-green-800">1,000</span>
+            </div>
+            <div>
+                <span class="text-green-600">Max Context:</span>
+                <span id="optimizerMaxContext" class="font-mono text-green-800">80%</span>
+            </div>
+            <div>
+                <span class="text-green-600">Applied Budget:</span>
+                <span id="optimizerAppliedBudget" class="font-mono text-green-800">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress Indicators -->
+    <div id="optimizeProgress" class="hidden mb-4">
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="optimizeProgressBar" class="progress-bar bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+        </div>
+        <div id="optimizeStatus" class="hidden text-sm text-gray-600 mt-1">Processing...</div>
+    </div>
+    <div id="optimizeText" class="hidden text-sm text-gray-600 mb-4">Processing...</div>
+    
+    <div id="sendProgress" class="hidden mb-4">
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="sendProgressBar" class="progress-bar bg-green-600 h-2 rounded-full" style="width: 0%"></div>
+        </div>
+        <div id="sendStatus" class="hidden text-sm text-gray-600 mt-1">Processing...</div>
+    </div>
+    <div id="sendText" class="hidden text-sm text-gray-600 mb-4">Processing...</div>
+    
+    <!-- LLM Configuration and Send Button -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <div>
+                <label for="provider" class="block text-xs font-medium text-gray-700 mb-1">Provider</label>
+                <select id="provider" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="anthropic">Anthropic (anthropic)</option>
+                </select>
+            </div>
+            <div>
+                <label for="model" class="block text-xs font-medium text-gray-700 mb-1">Model</label>
+                <select id="model" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="claude-opus-4-0">claude-opus-4-0</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Send Button with Icon -->
+        <button 
+            id="btnSend" 
+            class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+            <span>Send</span>
+        </button>
+    </div>
+</div>

@@ -45,6 +45,49 @@ This repository provides a complete environment for working with MCP servers, de
 - **Integrate MCP Connectors**: Connect to GitHub and PostgreSQL MCP servers for real-world data
 - **Build AI Applications**: Create AI-powered applications that combine multiple data sources and AI models
 
+## 🏗️ Architecture Overview
+
+This repository includes three distinct playground implementations, each with different architectural approaches:
+
+### **Basic Playground** - Simple & Lightweight
+- **LLM Integration**: Direct API calls using `requests` library
+- **MCP Integration**: Custom `fastmcp` client implementation
+- **Async Support**: Limited async support with manual `asyncio.run()`
+- **Type Safety**: Basic type hints with dataclasses
+- **Use Case**: Quick testing and learning MCP fundamentals
+
+### **Extended Playground** - Production-Ready Features
+- **LLM Integration**: Direct API calls using `requests` library
+- **MCP Integration**: Custom `fastmcp` client implementation
+- **Async Support**: Limited async support with manual `asyncio.run()`
+- **Type Safety**: Basic type hints with dataclasses
+- **Advanced Features**: Session management, comprehensive logging, token calculator
+- **Use Case**: Full-featured development with advanced capabilities
+
+### **LangChain Playground** - Modern & Scalable ⭐ **Recommended**
+- **LLM Integration**: LangChain's standardized LLM interfaces
+- **MCP Integration**: LangChain's MCP adapters for seamless integration
+- **Async Support**: Full async/await support throughout
+- **Type Safety**: Enhanced type hints with proper interfaces
+- **Architecture**: Modular design following SOLID principles
+- **Performance**: True async operations with better resource management
+- **Extensibility**: Easy to add new providers and connectors
+- **Use Case**: Production-ready applications with modern best practices
+
+### **Key Architectural Differences**
+
+| Feature | Basic | Extended | LangChain |
+|---------|-------|----------|-----------|
+| **LLM Integration** | Direct API calls | Direct API calls | LangChain interfaces |
+| **MCP Integration** | Custom fastmcp | Custom fastmcp | LangChain MCP adapters |
+| **Async Support** | Limited | Limited | Full async/await |
+| **Type Safety** | Basic | Basic | Enhanced |
+| **Modularity** | Simple | Good | Excellent |
+| **Testability** | Basic | Good | Excellent |
+| **Performance** | Basic | Good | Optimized |
+| **Maintainability** | Simple | Good | Excellent |
+| **Extensibility** | Limited | Good | Excellent |
+
 ## 🧠 Context Strategies & MCP Integration
 
 The playgrounds implement sophisticated **Model Context Protocol (MCP) context management strategies** that enable dynamic, real-time context updates when knowledge base content changes. This section documents the current implementation and roadmap for future enhancements.
@@ -468,21 +511,42 @@ llm-playground/
 │   │   ├── requirements.txt      # Python dependencies
 │   │   ├── static/               # Frontend assets
 │   │   └── templates/            # HTML templates
-│   └── extended/                  # Advanced playground with full features
-│       ├── app.py                # Enhanced Flask application (17KB, 484 lines)
-│       ├── core/                 # Modular architecture
+│   ├── extended/                  # Advanced playground with full features
+│   │   ├── app.py                # Enhanced Flask application (17KB, 484 lines)
+│   │   ├── core/                 # Modular architecture
+│   │   │   ├── __init__.py       # Core module initialization
+│   │   │   ├── settings.py       # Settings management (11KB, 259 lines)
+│   │   │   ├── chat_service.py   # Chat functionality (13KB, 306 lines)
+│   │   │   ├── llm_providers.py  # AI provider integrations (18KB, 405 lines)
+│   │   │   ├── mcp_connectors.py # MCP server connections (20KB, 459 lines)
+│   │   │   ├── logging_service.py # Comprehensive logging (10KB, 244 lines)
+│   │   │   ├── prompt_optimizer.py # Smart prompt optimization (14KB, 317 lines)
+│   │   │   ├── token_calculator.py # Token counting & cost estimation (14KB, 376 lines)
+│   │   │   └── models.py         # Data models and structures (10KB, 337 lines)
+│   │   ├── static/               # Enhanced frontend assets
+│   │   ├── templates/            # Advanced UI templates
+│   │   └── requirements.txt      # Python dependencies
+│   └── langchain/                 # ⭐ Modern LangChain-based playground (Recommended)
+│       ├── app.py                # LangChain Flask application
+│       ├── core/                 # LangChain modular architecture
 │       │   ├── __init__.py       # Core module initialization
-│       │   ├── settings.py       # Settings management (11KB, 259 lines)
-│       │   ├── chat_service.py   # Chat functionality (13KB, 306 lines)
-│       │   ├── llm_providers.py  # AI provider integrations (18KB, 405 lines)
-│       │   ├── mcp_connectors.py # MCP server connections (20KB, 459 lines)
-│       │   ├── logging_service.py # Comprehensive logging (10KB, 244 lines)
-│       │   ├── prompt_optimizer.py # Smart prompt optimization (14KB, 317 lines)
-│       │   ├── token_calculator.py # Token counting & cost estimation (14KB, 376 lines)
-│       │   └── models.py         # Data models and structures (10KB, 337 lines)
-│       ├── static/               # Enhanced frontend assets
-│       ├── templates/            # Advanced UI templates
-│       └── requirements.txt      # Python dependencies
+│       │   ├── settings.py       # Settings management with LangChain integration
+│       │   ├── chat_service.py   # LangChain-based chat functionality
+│       │   ├── llm_providers.py  # LangChain LLM provider implementations
+│       │   ├── mcp_connectors.py # LangChain MCP adapters
+│       │   ├── logging_service.py # Comprehensive logging
+│       │   ├── prompt_optimizer.py # Smart prompt optimization
+│       │   ├── token_calculator.py # Token counting & cost estimation
+│       │   ├── models.py         # Data models and structures
+│       │   ├── container.py      # Dependency injection container
+│       │   ├── controllers.py    # Request controllers
+│       │   ├── exceptions.py     # Custom exceptions
+│       │   └── validation.py     # Data validation
+│       ├── static/               # Frontend assets
+│       ├── templates/            # UI templates
+│       ├── requirements.txt      # Python dependencies
+│       ├── README.md             # LangChain playground documentation
+│       └── COMPARISON.md         # Architecture comparison (to be merged)
 ├── github-issues/                 # GitHub MCP Server - reading issues
 │   ├── main.py                   # Main GitHub client application
 │   ├── issue_fetch.py            # Issue fetching utilities
@@ -553,10 +617,24 @@ cd llm-playground
 
 ### Scenario 3: Research and Development
 **Use Case**: Academic research, prototyping, or development
-**Recommended**: Use both playgrounds based on complexity
+**Recommended**: Use playgrounds based on complexity
 
 - **Basic**: Quick prototyping and testing
 - **Extended**: Full-featured development with advanced features
+- **LangChain**: Modern, scalable development with industry best practices
+
+### Scenario 3.5: Modern Production Development ⭐ **New**
+**Use Case**: Building production-ready applications with modern architecture
+**Recommended**: Use the **LangChain Playground**
+
+- **LangChain Integration**: Industry-standard LLM interfaces and MCP adapters
+- **Full Async Support**: True async/await operations throughout the stack
+- **Enhanced Type Safety**: Comprehensive type hints and interfaces
+- **Modular Architecture**: SOLID principles with clean separation of concerns
+- **Better Performance**: Optimized resource management and connection pooling
+- **Extensibility**: Easy to add new providers and connectors
+- **Testability**: Dependency injection for better testing
+- **Maintainability**: Clean code structure with proper error handling
 
 ### Scenario 4: Advanced Context Management
 **Use Case**: Implementing sophisticated MCP context strategies for enterprise applications
@@ -819,6 +897,157 @@ Then open your browser to `http://localhost:5000`
 - **Multi-Agent Systems**: Develop distributed AI systems with specialized agent coordination
 - **Knowledge Graph Applications**: Create semantic knowledge representation and reasoning systems
 - **Research & Development**: Study advanced AI techniques and experimental implementations
+
+## 🚀 LangChain Playground ⭐ **Recommended**
+
+The **LangChain Playground** represents the most modern and scalable implementation, built with industry-standard LangChain interfaces and MCP adapters. This playground offers significant improvements in architecture, performance, and maintainability.
+
+### Features
+
+- **Modern Architecture**: Built with LangChain's standardized interfaces and MCP adapters
+- **Full Async Support**: True async/await operations throughout the entire stack
+- **Enhanced Type Safety**: Comprehensive type hints with proper interfaces
+- **Modular Design**: SOLID principles with clean separation of concerns
+- **Better Performance**: Optimized resource management and connection pooling
+- **Extensibility**: Easy to add new LangChain providers and MCP adapters
+- **Testability**: Dependency injection for better testing and mocking
+- **Maintainability**: Clean code structure with comprehensive error handling
+- **All Extended Features**: Includes all features from the Extended Playground
+- **LangChain Ecosystem**: Seamless integration with the broader LangChain ecosystem
+
+### Key Improvements Over Extended Playground
+
+#### **1. LLM Provider Implementation**
+
+**Extended (Direct API):**
+```python
+class OpenAIProvider(BaseLLMProvider):
+    def complete(self, prompt: str, system: Optional[str] = None, 
+                temperature: Optional[float] = None, logger=None) -> str:
+        # Direct HTTP requests to OpenAI API
+        response = requests.post(url, headers=headers, json=payload)
+        return response.json()["choices"][0]["message"]["content"]
+```
+
+**LangChain (Standardized):**
+```python
+class OpenAIProvider(BaseLangChainProvider):
+    def _create_llm(self) -> BaseLLM:
+        return ChatOpenAI(
+            model=self.config.default_model,
+            openai_api_key=self.config.api_key,
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_completion_tokens
+        )
+    
+    async def generate(self, prompt: str, system: Optional[str] = None, 
+                      temperature: Optional[float] = None, logger=None) -> ChatResponse:
+        # Use LangChain's standardized interface
+        response = await llm.ainvoke(messages)
+        return ChatResponse(text=response.content, ...)
+```
+
+#### **2. MCP Connector Implementation**
+
+**Extended (Custom):**
+```python
+class GitHubMCPConnector(BaseMCPConnector):
+    def _mcp_connect(self):
+        auth = MCPBearerAuth(self.auth_token) if self.auth_token else None
+        return MCPClient(self.url, auth=auth)
+    
+    async def fetch_issues_and_comments(self, limit_issues=3, limit_comments=5):
+        # Manual MCP client usage
+        client = self._mcp_connect()
+        # Custom implementation for fetching data
+```
+
+**LangChain (Official Adapters):**
+```python
+class GitHubMCPConnector(BaseMCPConnector):
+    async def connect(self) -> MCPClient:
+        config = MCPClientConfig(
+            server_url=self.url,
+            auth_token=self.auth_token if self.auth_token else None
+        )
+        self._client = MCPClient(config)
+        await self._client.connect()
+        return self._client
+    
+    async def fetch_data(self, limit_issues: int = 3, limit_comments: int = 5):
+        # Use LangChain's MCP adapters
+        client = await self.connect()
+        issues_result = await client.list_issues(...)
+```
+
+#### **3. Architecture Benefits**
+
+- **Standardization**: Uses industry-standard LangChain interfaces
+- **Performance**: True async operations with better resource management
+- **Maintainability**: Cleaner code structure with better separation of concerns
+- **Extensibility**: Easy to add new providers and connectors
+- **Reliability**: Better error handling and recovery mechanisms
+- **Future-Proof**: Built on LangChain's ecosystem for long-term sustainability
+
+### Installation
+
+```bash
+cd playgrounds/langchain
+pip install -r requirements.txt
+```
+
+### Configuration
+
+1. Copy the environment template:
+```bash
+cp ../../github-issues/env_example.txt .env
+```
+
+2. Configure your environment variables (same as other playgrounds)
+
+### Usage
+
+```bash
+# Start the LangChain playground
+python app.py
+```
+
+Then open your browser to `http://localhost:5052` (different port from other playgrounds)
+
+### Advanced Features
+
+#### **1. LangChain Integration**
+- **Standardized LLM Interfaces**: Use LangChain's proven LLM abstractions
+- **MCP Adapters**: Leverage official LangChain MCP adapters
+- **Tool Integration**: Easy integration with LangChain's tool ecosystem
+- **Chain Composition**: Build complex workflows with LangChain chains
+
+#### **2. Enhanced Async Support**
+- **True Async Operations**: Full async/await support throughout the stack
+- **Connection Pooling**: Efficient resource management
+- **Concurrent Processing**: Better handling of multiple requests
+- **Performance Optimization**: Reduced latency and improved throughput
+
+#### **3. Improved Architecture**
+- **Dependency Injection**: Clean dependency management
+- **Interface-Based Design**: Better abstraction and testability
+- **Error Handling**: Comprehensive error management
+- **Validation**: Enhanced input validation and type checking
+
+#### **4. Developer Experience**
+- **Better Testing**: Dependency injection enables easier testing
+- **Code Quality**: Enhanced type safety and error handling
+- **Documentation**: Comprehensive inline documentation
+- **Debugging**: Better debugging capabilities with LangChain's tools
+
+### Use Cases
+
+- **Production Applications**: Build scalable, maintainable applications
+- **Enterprise Development**: Modern architecture for enterprise needs
+- **Team Development**: Clean code structure for team collaboration
+- **Long-term Projects**: Future-proof architecture for sustained development
+- **LangChain Ecosystem**: Leverage the full LangChain ecosystem
+- **Modern Best Practices**: Follow industry standards and best practices
 
 ## 🔢 Token Calculator
 
@@ -1340,6 +1569,18 @@ result = await client.call_tool("execute_sql", {
 - `tiktoken` - Official OpenAI tokenizer for token counting
 - `anthropic` - Anthropic API client for token counting
 
+### LangChain Playground ⭐ **Recommended**
+- `flask`
+- `python-dotenv`
+- `langchain` - Core LangChain framework
+- `langchain-openai` - OpenAI integration
+- `langchain-anthropic` - Anthropic integration
+- `langchain-google-genai` - Google Gemini integration
+- `langchain-community` - Community integrations
+- `langchain-mcp` - MCP adapters for LangChain
+- `tiktoken` - Official OpenAI tokenizer for token counting
+- `anthropic` - Anthropic API client for token counting
+
 ### GitHub Client
 - `fastmcp`
 - `pydantic`
@@ -1404,6 +1645,14 @@ cp ../../github-issues/env_example.txt .env
 # Edit .env with your API keys
 python app.py
 # Open http://localhost:5000
+
+# LangChain Playground (Modern & Recommended) ⭐
+cd ../langchain
+pip install -r requirements.txt
+cp ../../github-issues/env_example.txt .env
+# Edit .env with your API keys
+python app.py
+# Open http://localhost:5052
 ```
 
 ### What You'll Experience
@@ -1411,12 +1660,74 @@ python app.py
 2. **Individual Clients**: See how each MCP server works independently
 3. **Basic Playground**: Simple integration with multiple AI providers and MCP connectors
 4. **Extended Playground**: Complete integration with advanced features
+5. **LangChain Playground**: Modern, scalable implementation with industry best practices
 
 ## References
 
 - [One Month in MCP: What I Learned the Hard Way](https://www.reddit.com/r/mcp/comments/1mub6g6/one_month_in_mcp_what_i_learned_the_hard_way/)
 - [Model Context Protocol (MCP) Curriculum for Beginners](https://github.com/microsoft/mcp-for-beginners/)
 - [Context Engineering: An Emerging Concept in the MCP Ecosystem](https://github.com/microsoft/mcp-for-beginners/tree/main/05-AdvancedTopics/mcp-contextengineering)
+
+## 🔄 Migration Guide
+
+### For Users
+
+#### From Basic/Extended to LangChain Playground
+1. **Install LangChain dependencies**: `pip install -r requirements.txt`
+2. **Update environment variables**: Same format as other playgrounds
+3. **Run the application**: `python app.py`
+4. **Access at**: `http://localhost:5052` (different port from other playgrounds)
+
+#### Benefits of Migration
+- **Better Performance**: True async operations and optimized resource management
+- **Enhanced Reliability**: Better error handling and recovery mechanisms
+- **Future-Proof**: Built on LangChain's ecosystem for long-term sustainability
+- **Industry Standards**: Uses proven LangChain interfaces and best practices
+
+### For Developers
+
+#### Architecture Migration
+1. **LLM Providers**: Use LangChain's provider interfaces instead of direct API calls
+2. **MCP Connectors**: Use LangChain's MCP adapters instead of custom implementations
+3. **Async Operations**: Use proper async/await patterns throughout
+4. **Error Handling**: Implement comprehensive error handling with LangChain's patterns
+5. **Testing**: Use dependency injection for better testing and mocking
+
+#### Code Migration Examples
+
+**LLM Provider Migration:**
+```python
+# Before (Extended): Direct API calls
+class OpenAIProvider(BaseLLMProvider):
+    def complete(self, prompt: str) -> str:
+        response = requests.post(url, headers=headers, json=payload)
+        return response.json()["choices"][0]["message"]["content"]
+
+# After (LangChain): Standardized interfaces
+class OpenAIProvider(BaseLangChainProvider):
+    def _create_llm(self) -> BaseLLM:
+        return ChatOpenAI(model=self.config.default_model, ...)
+    
+    async def generate(self, prompt: str) -> ChatResponse:
+        response = await llm.ainvoke(messages)
+        return ChatResponse(text=response.content, ...)
+```
+
+**MCP Connector Migration:**
+```python
+# Before (Extended): Custom MCP client
+class GitHubMCPConnector(BaseMCPConnector):
+    def _mcp_connect(self):
+        return MCPClient(self.url, auth=auth)
+
+# After (LangChain): Official adapters
+class GitHubMCPConnector(BaseMCPConnector):
+    async def connect(self) -> MCPClient:
+        config = MCPClientConfig(server_url=self.url, ...)
+        self._client = MCPClient(config)
+        await self._client.connect()
+        return self._client
+```
 
 ## 🤝 Contributing
 
@@ -1450,6 +1761,7 @@ python app.py
 ### File Structure Summary
 - **Basic Playground**: 43KB, 1112 lines - Simple, lightweight interface
 - **Extended Playground**: 17KB, 484 lines - Full-featured with modular architecture
+- **LangChain Playground**: Modern implementation with LangChain integration - **Recommended**
 - **Core Modules**: 8 modules totaling ~120KB with comprehensive functionality
 - **Session Data**: Centralized management with logs, settings, and user data
 

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}LLM Playground - Home{% endblock %}
+
+{% block content %}
+<!-- Header Component -->
+{% include "components/header.html" %}
+
+<!-- Navigation Component -->
+{% include "components/navigation.html" %}
+
+<!-- Tab Content -->
+<div id="tab-chat" class="space-y-6">
+    <!-- Chat Input Component -->
+    {% include "components/chat_input.html" %}
+    
+    <!-- Conversation Component -->
+    {% include "components/conversation.html" %}
+    
+    <!-- Research Paper Workflow Examples -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Research Paper Workflow Examples</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button id="btnExample1" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <h3 class="font-medium text-gray-900 mb-2">Recommendation System</h3>
+                <p class="text-sm text-gray-600">Build a recommendation system with research insights</p>
+            </button>
+            <button id="btnExample2" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <h3 class="font-medium text-gray-900 mb-2">Requirements Analysis</h3>
+                <p class="text-sm text-gray-600">Extract requirements and match with research papers</p>
+            </button>
+            <button id="btnExample3" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <h3 class="font-medium text-gray-900 mb-2">Implementation Guide</h3>
+                <p class="text-sm text-gray-600">Get implementation guidance from research findings</p>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="tab-debug" class="hidden space-y-6">
+    <!-- Debug Panel Component -->
+    {% include "components/debug_panel.html" %}
+</div>
+
+<div id="tab-settings" class="hidden space-y-6">
+    <!-- Settings Form Component -->
+    {% include "components/settings_form.html" %}
+</div>
+
+<div id="tab-templates" class="hidden space-y-6">
+    <!-- Prompt Templates Component -->
+    {% include "components/prompt_templates.html" %}
+</div>
+
+<div id="tab-tokens" class="hidden space-y-6">
+    <!-- Token Calculator Component -->
+    {% include "components/token_calculator.html" %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Load modular JavaScript components -->
+<script src="{{ url_for('static', filename='js/core/App.js') }}"></script>
+<script src="{{ url_for('static', filename='js/core/SettingsManager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/core/ChatManager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/core/TemplateManager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/core/DebugManager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/core/TokenCalculator.js') }}"></script>
+
+<!-- Load main application script -->
+<script src="{{ url_for('static', filename='main.js') }}"></script>
+{% endblock %}
