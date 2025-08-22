@@ -1,6 +1,6 @@
 ![AI Generated](https://img.shields.io/badge/AI-Generated-blueviolet?style=for-the-badge&logo=openai&logoColor=white)
 
-# MCP Clients Playground
+# LLM Playground
 
 A comprehensive playground for experimenting with Model Context Protocol (MCP) servers, featuring web-based interfaces for testing multiple AI providers and MCP connectors.
 
@@ -449,7 +449,7 @@ class OWASPLLMSecurityManager:
 ## 📁 Project Structure
 
 ```
-mcp-clients-playground/
+llm-playground/
 ├── playgrounds/                    # 🆕 Web-based MCP Playgrounds
 │   ├── session-data/              # Centralized settings and session data
 │   │   ├── settings.json         # Main settings template (NOT tracked by git)
@@ -515,8 +515,8 @@ mcp-clients-playground/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/mcp-clients-playground.git
-   cd mcp-clients-playground
+   git clone https://github.com/your-username/llm-playground.git
+cd llm-playground
    ```
 
 2. **Set up the database (required for PostgreSQL MCP):**
@@ -1356,7 +1356,7 @@ result = await client.call_tool("execute_sql", {
 
 ## 🎮 Complete Demo Flow
 
-Follow this step-by-step progression to experience the full MCP playground:
+Follow this step-by-step progression to experience the full LLM playground:
 
 ### Step 1: Test with MCP Inspector
 ```bash

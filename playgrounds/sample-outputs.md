@@ -1,4 +1,4 @@
-# Sample Outputs - MCP Clients Playground
+# Sample Outputs - LLM Playground
 
 This directory contains sample outputs demonstrating the capabilities of both the basic and extended playgrounds.
 
@@ -49,12 +49,12 @@ ORDER BY date DESC LIMIT 3;
 
 #### User Prompt
 ```
-Analyze the open issues in amitpuri/mcp-clients-playground and provide a simple summary.
+Analyze the open issues in amitpuri/llm-playground and provide a simple summary.
 ```
 
 #### Optimized Prompt
 ```
-Review the amitpuri/mcp-clients-playground repository and provide a concise summary of all OPEN issues.
+Review the amitpuri/llm-playground repository and provide a concise summary of all OPEN issues.
 
 Analysis Requirements:
 - Count total open issues
@@ -66,7 +66,7 @@ Analysis Requirements:
 #### Context — GitHub Issues
 ```
 Issue #1: Multi-Component GitHub and PostgreSQL Integration Platform
-URL: https://github.com/amitpuri/mcp-clients-playground/issues/1
+URL: https://github.com/amitpuri/llm-playground/issues/1
 State: open | Updated: 2025-08-20T11:49:25Z
 Labels: documentation, enhancement, setup, mcp-integration, github-api, postgresql, P0
 
@@ -164,7 +164,7 @@ LIMIT 10;
 
 #### User Prompt
 ```
-Analyze GitHub issues from amitpuri/mcp-clients-playground and match them with relevant AI research papers. Provide:
+Analyze GitHub issues from amitpuri/llm-playground and match them with relevant AI research papers. Provide:
 1. Key requirements extracted from GitHub issues
 2. Relevant research papers that address these requirements
 3. Implementation recommendations based on research findings
@@ -174,7 +174,7 @@ Analyze GitHub issues from amitpuri/mcp-clients-playground and match them with r
 
 #### Optimized Prompt
 ```
-Analyze GitHub issues from amitpuri/mcp-clients-playground repository and match them with relevant AI research papers to provide comprehensive implementation guidance.
+Analyze GitHub issues from amitpuri/llm-playground repository and match them with relevant AI research papers to provide comprehensive implementation guidance.
 
 Advanced Analysis Requirements:
 - Multi-Agent Orchestration: Design coordination strategy for GitHub MCP, PostgreSQL MCP, and AI providers

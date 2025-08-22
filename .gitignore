@@ -230,7 +230,7 @@ $RECYCLE.BIN/
 .Trash-*
 .nfs*
 
-# Project specific - MCP Clients Playground
+# Project specific - LLM Playground
 # Add any project-specific files or directories here
 config.ini
 secrets.json
@@ -239,7 +239,7 @@ secrets.json
 *.p12
 *.pfx
 
-# MCP Playground specific - Updated for centralized session-data structure
+# LLM Playground specific - Updated for centralized session-data structure
 # Main playground settings (keep the template, ignore session-specific files)
 playgrounds/session-data/settings-*.json
 playgrounds/session-data/settings.json.bak

@@ -1,1 +1,1 @@
-# Core module for MCP Playground
+# Core module for LLM Playground

@@ -1,8 +1,8 @@
-# Session Data Information - MCP Clients Playground
+# Session Data Information - LLM Playground
 
 ## Overview
 
-The `session-data/` folder is a dedicated directory for storing session-related information, user data, and temporary files generated during MCP playground usage. This folder helps maintain state across sessions and provides a centralized location for data persistence.
+The `session-data/` folder is a dedicated directory for storing session-related information, user data, and temporary files generated during LLM playground usage. This folder helps maintain state across sessions and provides a centralized location for data persistence.
 
 ## Purpose
 
@@ -253,6 +253,6 @@ session-data/logs/
 
 ## Conclusion
 
-The `session-data/` folder is a crucial component of the MCP Clients Playground, providing essential data persistence, caching, and logging capabilities. With the recent migration of logs to the centralized `session-data/logs/` directory, the system now provides better organization, easier management, and consistent structure across all playgrounds while respecting user privacy and data security.
+The `session-data/` folder is a crucial component of the LLM Playground, providing essential data persistence, caching, and logging capabilities. With the recent migration of logs to the centralized `session-data/logs/` directory, the system now provides better organization, easier management, and consistent structure across all playgrounds while respecting user privacy and data security.
 
 For more information about specific playground implementations, see the main `sample-outputs.md` file in the playgrounds directory.

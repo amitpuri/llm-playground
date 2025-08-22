@@ -1,5 +1,5 @@
 """
-Data models for the MCP Playground application.
+Data models for the LLM Playground application.
 Following SOLID principles with clear separation of concerns.
 """
 from dataclasses import dataclass, asdict

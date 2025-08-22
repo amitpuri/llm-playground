@@ -1,5 +1,5 @@
 """
-Logging service for MCP Playground application.
+Logging service for LLM Playground application.
 Handles session-based logging of MCP and LLM communications.
 """
 import os
