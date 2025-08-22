@@ -1,0 +1,16 @@
+# Atlassian Configuration
+ATLASSIAN_BASE_URL=https://your-domain.atlassian.net
+ATLASSIAN_USERNAME=your-email@domain.com
+ATLASSIAN_API_TOKEN=your_atlassian_api_token_here
+
+# MCP Server Configuration
+ATLASSIAN_MCP_URL=http://localhost:8080
+
+# Optional: Jira Configuration
+JIRA_PROJECT_KEY=PROJ
+
+# Optional: Confluence Configuration  
+CONFLUENCE_SPACE_KEY=SPACE
+
+# Logging Configuration (optional)
+LOG_LEVEL=INFO

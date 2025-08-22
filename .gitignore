@@ -119,7 +119,7 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments - CRITICAL: Never commit environment files with real credentials
 .env
 .venv
 env/
@@ -127,6 +127,20 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# CRITICAL SECURITY: Environment files with real credentials
+# These patterns catch all possible environment file variations
+**/.env
+**/.env.local
+**/.env.development
+**/.env.production
+**/.env.staging
+**/.env.test
+**/.env.*
+**/env.txt
+**/environment.txt
+**/config.env
+**/settings.env
 
 # Spyder project settings
 .spyderproject
@@ -239,13 +253,49 @@ secrets.json
 *.p12
 *.pfx
 
+# CRITICAL SECURITY: API Keys and Authentication Files
+# These patterns catch all possible credential file variations
+**/api_keys.txt
+**/api_keys.json
+**/credentials.json
+**/credentials.txt
+**/token.json
+**/token.txt
+**/auth.json
+**/auth.txt
+**/config.json
+**/secrets.json
+**/secrets.txt
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/private_key*
+**/public_key*
+**/certificate*
+**/cert*
+
+# CRITICAL SECURITY: Atlassian Directory Protection
+# Never commit any files from the atlassian directory that might contain credentials
+atlassian/.env
+atlassian/*.env
+atlassian/config/
+atlassian/credentials/
+atlassian/secrets/
+atlassian/data/
+atlassian/logs/
+atlassian/cache/
+atlassian/temp/
+atlassian/exports/
+atlassian/backups/
+
 # LLM Playground specific - Updated for centralized session-data structure
 # Main playground settings (keep the template, ignore session-specific files)
 playgrounds/session-data/settings-*.json
 playgrounds/session-data/settings.json.bak
 playgrounds/session-data/settings.json.tmp
 
-# IMPORTANT: Never commit the main settings.json file with real API keys
+# CRITICAL: Never commit the main settings.json file with real API keys
 # This file should only contain empty placeholders for API keys
 # If you need to commit a template, use sample.settings.json instead
 playgrounds/session-data/settings.json
@@ -297,14 +347,6 @@ playground/temp/
 playground/cache/
 playground/outputs/
 playground/demo-script
-
-# API Keys and sensitive configuration
-**/api_keys.txt
-**/credentials.json
-**/token.json
-**/auth.json
-**/config.json
-**/secrets.json
 
 # Database files
 *.db
@@ -370,5 +412,44 @@ docker-compose.override.yaml
 local/
 dev/
 development/
+
+# CRITICAL SECURITY: Additional Protection Patterns
+# Catch any files that might contain sensitive information
+**/private/
+**/secret/
+**/confidential/
+**/sensitive/
+**/internal/
+**/production/
+**/staging/
+**/dev/
+**/test/
+
+# Backup and temporary files that might contain credentials
+**/*.bak
+**/*.backup
+**/*.tmp
+**/*.temp
+**/*.old
+**/*.orig
+**/*.save
+
+# IDE and editor files that might contain sensitive data
+**/.vscode/settings.json
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+**/.idea/usage.statistics.xml
+**/.idea/dictionaries/
+**/.idea/shelf/
+
+# OS generated files
+**/.DS_Store
+**/Thumbs.db
+**/ehthumbs.db
+**/Desktop.ini
+
+# CRITICAL: Never commit any files with these patterns in their content
+# This is a reminder - actual filtering should be done by pre-commit hooks
+# Files containing API keys, tokens, passwords, etc.
 
 
