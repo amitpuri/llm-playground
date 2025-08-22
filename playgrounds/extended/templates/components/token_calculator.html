@@ -1,0 +1,188 @@
+<!-- Token Calculator Component -->
+<div id="token-calculator" class="token-calculator-container">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="border-b border-gray-200 pb-4 mb-6">
+            <h5 class="text-lg font-semibold text-gray-900 mb-0">
+                <i class="fas fa-calculator mr-2"></i>
+                Token Calculator
+                <small class="text-gray-500 ml-2">AI Model Token Counting</small>
+            </h5>
+        </div>
+        <div>
+            <!-- Input Section -->
+            <div class="mb-4">
+                <label for="token-text-input" class="block text-sm font-medium text-gray-700 mb-2">Text to Analyze</label>
+                <textarea 
+                    id="token-text-input" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                    rows="6" 
+                    placeholder="Enter text to count tokens for different AI models..."
+                ></textarea>
+                <div class="mt-2">
+                    <small class="text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Supports OpenAI (GPT), Anthropic (Claude), and Google (Gemini) models
+                    </small>
+                </div>
+            </div>
+
+            <!-- Provider Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="token-provider" class="block text-sm font-medium text-gray-700 mb-2">Provider</label>
+                    <select id="token-provider" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <!-- Will be populated from settings -->
+                    </select>
+                </div>
+                <div>
+                    <label for="token-model" class="block text-sm font-medium text-gray-700 mb-2">Model</label>
+                    <select id="token-model" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <!-- Will be populated from settings -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button id="count-tokens-btn" class="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    <i class="fas fa-calculator mr-2"></i>
+                    Count Tokens
+                </button>
+                <button id="analyze-text-btn" class="w-full bg-cyan-500 text-white px-4 py-2 rounded-md hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors">
+                    <i class="fas fa-chart-bar mr-2"></i>
+                    Analyze All Providers
+                </button>
+            </div>
+
+            <!-- Results Section -->
+            <div id="token-results" class="bg-gray-50 rounded-lg p-6 border border-gray-200" style="display: none;">
+                <!-- Single Provider Results -->
+                <div id="single-provider-results" class="mb-6">
+                    <h6 class="text-blue-600 font-semibold mb-4">
+                        <i class="fas fa-chart-pie mr-2"></i>
+                        Token Analysis
+                    </h6>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold mb-1" id="token-count">-</div>
+                            <div class="text-sm opacity-90">Tokens</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold mb-1" id="character-count">-</div>
+                            <div class="text-sm opacity-90">Characters</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold mb-1" id="word-count">-</div>
+                            <div class="text-sm opacity-90">Words</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold mb-1" id="estimated-cost">-</div>
+                            <div class="text-sm opacity-90">Est. Cost ($)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Provider Results -->
+                <div id="multi-provider-results" class="mb-6" style="display: none;">
+                    <h6 class="text-blue-600 font-semibold mb-4">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Cross-Provider Comparison
+                    </h6>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="border border-gray-300 p-2 text-left font-semibold">Provider</th>
+                                    <th class="border border-gray-300 p-2 text-left font-semibold">Model</th>
+                                    <th class="border border-gray-300 p-2 text-left font-semibold">Tokens</th>
+                                    <th class="border border-gray-300 p-2 text-left font-semibold">Est. Cost ($)</th>
+                                    <th class="border border-gray-300 p-2 text-left font-semibold">Tokens/Word</th>
+                                    <th class="border border-gray-300 p-2 text-left font-semibold">Tokens/Char</th>
+                                </tr>
+                            </thead>
+                            <tbody id="provider-comparison-table">
+                                <!-- Will be populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cost Estimation Tool -->
+                <div id="cost-estimation-tool" class="mt-6">
+                    <h6 class="text-blue-600 font-semibold mb-4">
+                        <i class="fas fa-dollar-sign mr-2"></i>
+                        Cost Estimation Tool
+                    </h6>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="input-tokens" class="block text-sm font-medium text-gray-700 mb-2">Input Tokens</label>
+                            <input type="number" id="input-tokens" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="0" min="0">
+                        </div>
+                        <div>
+                            <label for="output-tokens" class="block text-sm font-medium text-gray-700 mb-2">Output Tokens</label>
+                            <input type="number" id="output-tokens" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="0" min="0">
+                        </div>
+                        <div>
+                            <label for="cost-provider" class="block text-sm font-medium text-gray-700 mb-2">Provider</label>
+                            <select id="cost-provider" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <!-- Will be populated from settings -->
+                            </select>
+                        </div>
+                        <div>
+                            <label for="cost-model" class="block text-sm font-medium text-gray-700 mb-2">Model</label>
+                            <select id="cost-model" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <!-- Will be populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <button id="estimate-cost-btn" class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Estimate Cost
+                        </button>
+                        <button id="use-current-tokens-btn" class="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                            <i class="fas fa-arrow-down mr-2"></i>
+                            Use Current Tokens
+                        </button>
+                        <div class="bg-blue-50 border border-blue-200 rounded-md p-3" id="cost-result" style="display: none;">
+                            <strong class="text-blue-800">Estimated Cost:</strong> <span id="cost-amount" class="text-blue-800 font-semibold">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="token-loading" class="text-center" style="display: none;">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p class="mt-2 text-gray-500">Analyzing tokens...</p>
+            </div>
+
+            <!-- Error Display -->
+            <div id="token-error" class="bg-red-50 border border-red-200 rounded-md p-3 mt-4" style="display: none;">
+                <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
+                <span id="error-message" class="text-red-800"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Provider badge styles for table cells */
+.provider-badge {
+    @apply text-xs px-2 py-1 rounded-full font-medium;
+}
+
+.provider-openai {
+    @apply bg-green-100 text-green-800;
+}
+
+.provider-anthropic {
+    @apply bg-orange-100 text-orange-800;
+}
+
+.provider-google {
+    @apply bg-blue-100 text-blue-800;
+}
+</style>

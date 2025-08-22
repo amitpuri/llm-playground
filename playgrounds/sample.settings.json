@@ -1,0 +1,102 @@
+{
+  "providers": {
+    "openai": {
+      "enabled": false,
+      "name": "OpenAI",
+      "base_url": "https://api.openai.com/v1",
+      "api_key": "",
+      "temperature": 0.2,
+      "default_model": "gpt-5",
+      "context_window": 128000,
+      "max_completion_tokens": 8192,
+      "usage_cap_tokens": 1000000,
+      "usage_tracking": {
+        "total_tokens_used": 0,
+        "user_tokens": 0,
+        "optimized_tokens": 0,
+        "response_tokens": 0,
+        "api_calls": 0,
+        "last_updated": ""
+      }
+    },
+    "anthropic": {
+      "enabled": true,
+      "name": "Anthropic",
+      "base_url": "https://api.anthropic.com",
+      "api_key": "",
+      "temperature": 0.2,
+      "default_model": "claude-3-7-sonnet-latest",
+      "context_window": 200000,
+      "max_completion_tokens": 8192,
+      "usage_cap_tokens": 1000000,
+      "usage_tracking": {
+        "total_tokens_used": 0,
+        "user_tokens": 0,
+        "optimized_tokens": 0,
+        "response_tokens": 0,
+        "api_calls": 0,
+        "last_updated": ""
+      }
+    },
+    "ollama": {
+      "enabled": true,
+      "name": "Ollama",
+      "base_url": "http://localhost:11434",
+      "api_key": "",
+      "temperature": 0.2,
+      "default_model": "gemma3:270m",
+      "context_window": 8000,
+      "max_completion_tokens": 4096,
+      "usage_cap_tokens": 1000000,
+      "usage_tracking": {
+        "total_tokens_used": 0,
+        "user_tokens": 0,
+        "optimized_tokens": 0,
+        "response_tokens": 0,
+        "api_calls": 0,
+        "last_updated": ""
+      }
+    },
+    "google": {
+      "enabled": true,
+      "name": "Google",
+      "base_url": "https://generativelanguage.googleapis.com",
+      "api_key": "",
+      "temperature": 0.2,
+      "default_model": "gemini-2.5-pro",
+      "context_window": 128000,
+      "max_completion_tokens": 8192,
+      "usage_cap_tokens": 1000000,
+      "usage_tracking": {
+        "total_tokens_used": 0,
+        "user_tokens": 0,
+        "optimized_tokens": 0,
+        "response_tokens": 0,
+        "api_calls": 0,
+        "last_updated": ""
+      }
+    }
+  },
+  "optimizer": {
+    "provider": "openai",
+    "model": "gpt-5",
+    "temperature": 0.2,
+    "max_tokens": 1000,
+    "max_context_usage": 0.8
+  },
+  "default_provider": "openai",
+  "mcp": {
+    "github": {
+      "enabled": true,
+      "url": "https://api.githubcopilot.com/mcp/",
+      "auth_token": "",
+      "repo": "owner/repo"
+    },
+    "postgres": {
+      "enabled": true,
+      "url": "http://localhost:8000/sse",
+      "auth_token": "",
+      "sample_sql": "SELECT url, title, date, abstract, category FROM research_papers.ai_research_papers ORDER BY date DESC LIMIT 5;"
+    }
+  }
+}

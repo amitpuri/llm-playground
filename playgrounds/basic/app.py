@@ -15,7 +15,7 @@ except Exception:
 load_dotenv()
 
 app = Flask(__name__)
-SETTINGS_PATH = os.getenv("PLAYGROUND_SETTINGS_PATH", "settings.json")
+SETTINGS_PATH = os.getenv("PLAYGROUND_SETTINGS_PATH", "../session-data/settings.json")
 
 # ----------------------------- Settings Model -----------------------------
 
@@ -28,6 +28,20 @@ class ProviderConf:
     temperature: float = 0.2
     default_model: str = ""
     context_window: int = 128000  # tokens
+    max_completion_tokens: int = 8192
+    usage_cap_tokens: int = 1000000
+    usage_tracking: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.usage_tracking is None:
+            self.usage_tracking = {
+                "total_tokens_used": 0,
+                "user_tokens": 0,
+                "optimized_tokens": 0,
+                "response_tokens": 0,
+                "api_calls": 0,
+                "last_updated": ""
+            }
 
 @dataclass
 class MCPGitHubConf:
@@ -48,12 +62,25 @@ class OptimizerConf:
     provider: str = "ollama"          # one of: openai | anthropic | ollama | google
     model: str = "gemma3:270m"        # model used for summarizing + optimizing
     temperature: float = 0.2
+    max_tokens: int = 1000
+    max_context_usage: float = 0.8
 
 @dataclass
 class AppSettings:
     providers: Dict[str, ProviderConf]
     mcp: Dict[str, Any]
     optimizer: OptimizerConf
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'AppSettings':
+        """Create AppSettings from dictionary data."""
+        providers = {k: ProviderConf(**v) for k, v in data.get("providers", {}).items()}
+        optimizer = OptimizerConf(**data.get("optimizer", {}))
+        return cls(
+            providers=providers,
+            mcp=data.get("mcp", {}),
+            optimizer=optimizer
+        )
 
 DEFAULT_SETTINGS = AppSettings(
     providers={
@@ -63,8 +90,10 @@ DEFAULT_SETTINGS = AppSettings(
             base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
             api_key=os.getenv("OPENAI_API_KEY", ""),
             temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.2")),
-            default_model=os.getenv("OPENAI_DEFAULT_MODEL", "gpt-5"),
+            default_model=os.getenv("OPENAI_DEFAULT_MODEL", "gpt-4o"),
             context_window=int(os.getenv("OPENAI_CONTEXT_WINDOW", "128000")),
+            max_completion_tokens=int(os.getenv("OPENAI_MAX_COMPLETION_TOKENS", "8192")),
+            usage_cap_tokens=int(os.getenv("OPENAI_USAGE_CAP_TOKENS", "1000000")),
         ),
         "anthropic": ProviderConf(  # enabled by default
             enabled=True,
@@ -74,6 +103,8 @@ DEFAULT_SETTINGS = AppSettings(
             temperature=float(os.getenv("ANTHROPIC_TEMPERATURE", "0.2")),
             default_model=os.getenv("ANTHROPIC_DEFAULT_MODEL", "claude-3-7-sonnet-latest"),
             context_window=int(os.getenv("ANTHROPIC_CONTEXT_WINDOW", "200000")),
+            max_completion_tokens=int(os.getenv("ANTHROPIC_MAX_COMPLETION_TOKENS", "8192")),
+            usage_cap_tokens=int(os.getenv("ANTHROPIC_USAGE_CAP_TOKENS", "500000")),
         ),
         "ollama": ProviderConf(  # local small model often best for fast summarize
             enabled=True,
@@ -83,6 +114,8 @@ DEFAULT_SETTINGS = AppSettings(
             temperature=float(os.getenv("OLLAMA_TEMPERATURE", "0.2")),
             default_model=os.getenv("OLLAMA_DEFAULT_MODEL", "gemma3:270m"),
             context_window=int(os.getenv("OLLAMA_CONTEXT_WINDOW", "8000")),
+            max_completion_tokens=int(os.getenv("OLLAMA_MAX_COMPLETION_TOKENS", "4096")),
+            usage_cap_tokens=int(os.getenv("OLLAMA_USAGE_CAP_TOKENS", "1000000")),
         ),
         "google": ProviderConf(
             enabled=False,
@@ -92,6 +125,8 @@ DEFAULT_SETTINGS = AppSettings(
             temperature=float(os.getenv("GOOGLE_TEMPERATURE", "0.2")),
             default_model=os.getenv("GOOGLE_DEFAULT_MODEL", "gemini-2.5-pro"),
             context_window=int(os.getenv("GOOGLE_CONTEXT_WINDOW", "128000")),
+            max_completion_tokens=int(os.getenv("GOOGLE_MAX_COMPLETION_TOKENS", "8192")),
+            usage_cap_tokens=int(os.getenv("GOOGLE_USAGE_CAP_TOKENS", "1000000")),
         ),
     },
     mcp={
@@ -116,6 +151,8 @@ DEFAULT_SETTINGS = AppSettings(
         provider=os.getenv("OPT_PROVIDER", "anthropic"),   # default to Anthropic
         model=os.getenv("OPT_MODEL", "claude-3-7-sonnet-latest"),
         temperature=float(os.getenv("OPT_TEMPERATURE", "0.2")),
+        max_tokens=int(os.getenv("OPT_MAX_TOKENS", "1000")),
+        max_context_usage=float(os.getenv("OPT_MAX_CONTEXT_USAGE", "0.8")),
     ),
 )
 
@@ -169,16 +206,28 @@ def _deep_merge(dst, src):
             dst[k] = v
 
 def load_settings() -> AppSettings:
-    if not os.path.exists(SETTINGS_PATH):
-        save_settings(DEFAULT_SETTINGS)
-        return DEFAULT_SETTINGS
-    with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-        raw = json.load(f)
-    cur = json.loads(json.dumps(asdict(DEFAULT_SETTINGS)))
-    _deep_merge(cur, raw)
-    prov = {k: ProviderConf(**v) for k, v in cur["providers"].items()}
-    opt = OptimizerConf(**cur.get("optimizer", {}))
-    return AppSettings(providers=prov, mcp=cur["mcp"], optimizer=opt)
+    """Load settings from JSON file with fallback to sample.settings.json."""
+    # Try to load from the specified file path first
+    if os.path.exists(SETTINGS_PATH):
+        print(f"Loading settings from: {SETTINGS_PATH}")
+        with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+            raw_data = json.load(f)
+        return AppSettings.from_dict(raw_data)
+    
+    # If the specified file doesn't exist, try to use sample.settings.json as template
+    sample_path = "../sample.settings.json"
+    if os.path.exists(sample_path):
+        print(f"settings.json not found, loading from: {sample_path}")
+        with open(sample_path, "r", encoding="utf-8") as f:
+            raw_data = json.load(f)
+        settings = AppSettings.from_dict(raw_data)
+        # Save to the session file to create it
+        save_settings(settings)
+        return settings
+    
+    # If neither exists, return default settings
+    print("No settings file found, using default settings")
+    return DEFAULT_SETTINGS
 
 def save_settings(s: AppSettings):
     data = {
@@ -295,12 +344,41 @@ def call_ollama(base_url: str, model: str, prompt: str, temperature: float = 0.2
 def call_openai(base_url: str, api_key: str, model: str, system: str, user: str, temperature: float = 0.2) -> str:
     url = f"{base_url.rstrip('/')}/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}"}
-    payload = {"model": model, "temperature": temperature, "messages": [
-        {"role": "system", "content": system},
-        {"role": "user", "content": user},
-    ]}
+    payload = {
+        "model": model, 
+        "max_completion_tokens": 4096,  # Use max_completion_tokens for GPT-5
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ]
+    }
+    
+    # GPT-5 doesn't support custom temperature, only default (1)
+    if not model.startswith("gpt-5"):
+        payload["temperature"] = temperature
+    
+    # Debug logging
+    print(f"OpenAI API Call Debug:")
+    print(f"  URL: {url}")
+    print(f"  Model: {model}")
+    print(f"  API Key (first 10 chars): {api_key[:10]}...")
+    print(f"  Payload keys: {list(payload.keys())}")
+    print(f"  Messages count: {len(payload['messages'])}")
+    
     r = requests.post(url, headers=headers, json=payload, timeout=180)
-    r.raise_for_status()
+    try:
+        r.raise_for_status()
+    except requests.HTTPError as e:
+        body = ""
+        try:
+            body = r.text[:2000]
+        except Exception:
+            pass
+        print(f"OpenAI API Error:")
+        print(f"  Status Code: {r.status_code}")
+        print(f"  Response Headers: {dict(r.headers)}")
+        print(f"  Response Body: {body}")
+        raise requests.HTTPError(f"OpenAI API Error {r.status_code}: {e} :: {body}") from None
     return r.json()["choices"][0]["message"]["content"].strip()
 
 def _anth_endpoint(base_url: str, resource: str = "messages") -> str:
@@ -883,14 +961,14 @@ def api_optimize():
 
     dbg = {"github": None, "postgres": None, "optimizer": None}
 
-    # Gather contexts
+    # Gather contexts (with error handling)
     issues_text = ""
     try:
         gh = asyncio.run(fetch_github_issues_and_comments(gh_conf, limit_issues=3, limit_comments=5))
         dbg["github"] = gh.get("debug")
         issues_text = render_issues_raw_text(gh.get("issues", []))
     except Exception as e:
-        dbg["github_error"] = str(e)
+        dbg["github"] = {"error": f"MCP GitHub connection failed: {str(e)}"}
 
     papers_text = ""
     try:
@@ -898,7 +976,7 @@ def api_optimize():
         dbg["postgres"] = pg.get("debug")
         papers_text = render_papers_raw_text(pg.get("rows", []))
     except Exception as e:
-        dbg["postgres_error"] = str(e)
+        dbg["postgres"] = {"error": f"MCP Postgres connection failed: {str(e)}"}
 
     provider_conf = s.providers.get(provider_key) or s.providers["anthropic"]
     cw = provider_conf.context_window or 128000
@@ -922,11 +1000,25 @@ def api_chat():
     model = request.json.get("model") or None
     user_prompt = (request.json.get("user_prompt") or "").strip()
 
-    # Re-fetch MCP contexts for fresh grounding
-    gh = asyncio.run(fetch_github_issues_and_comments(MCPGitHubConf(**s.mcp["github"]), 3, 5))
-    pg = asyncio.run(fetch_research_papers(MCPPostgresConf(**s.mcp["postgres"]), 8))
-    issues_text = render_issues_raw_text(gh.get("issues", []))
-    papers_text = render_papers_raw_text(pg.get("rows", []))
+    # Re-fetch MCP contexts for fresh grounding (with error handling)
+    issues_text = ""
+    papers_text = ""
+    gh_debug = {"error": "MCP GitHub not available"}
+    pg_debug = {"error": "MCP Postgres not available"}
+    
+    try:
+        gh = asyncio.run(fetch_github_issues_and_comments(MCPGitHubConf(**s.mcp["github"]), 3, 5))
+        issues_text = render_issues_raw_text(gh.get("issues", []))
+        gh_debug = gh.get("debug", {})
+    except Exception as e:
+        gh_debug = {"error": f"MCP GitHub connection failed: {str(e)}"}
+    
+    try:
+        pg = asyncio.run(fetch_research_papers(MCPPostgresConf(**s.mcp["postgres"]), 8))
+        papers_text = render_papers_raw_text(pg.get("rows", []))
+        pg_debug = pg.get("debug", {})
+    except Exception as e:
+        pg_debug = {"error": f"MCP Postgres connection failed: {str(e)}"}
 
     pconf = s.providers.get(provider) or s.providers["anthropic"]
     cw = pconf.context_window or 128000
@@ -966,7 +1058,20 @@ def api_chat():
             raw = call_google(pconf.base_url, pconf.api_key, provider_debug["model"], sys_prompt, final_prompt, pconf.temperature)
         else:
             raise RuntimeError(f"Unknown provider: {provider}")
+    except requests.HTTPError as e:
+        # Handle HTTP errors specifically
+        error_msg = f"HTTP Error: {e}"
+        if hasattr(e, 'response') and e.response is not None:
+            error_msg = f"HTTP Error {e.response.status_code}: {e}"
+            try:
+                error_body = e.response.text[:500]
+                error_msg += f" - Response: {error_body}"
+            except:
+                pass
+        raw = json.dumps({"answer": error_msg, "used_connectors": [], "citations": []})
+        provider_debug["error"] = str(e)
     except Exception as e:
+        # Handle other exceptions
         raw = json.dumps({"answer": f"Provider error: {e}", "used_connectors": [], "citations": []})
         provider_debug["error"] = str(e)
 
@@ -986,8 +1091,8 @@ def api_chat():
 
     debug = {
         "mcp": {
-            "github": gh.get("debug"),
-            "postgres": pg.get("debug"),
+            "github": gh_debug,
+            "postgres": pg_debug,
         },
         "optimizer": opt_dbg,
         "provider": provider_debug,

@@ -239,7 +239,56 @@ secrets.json
 *.p12
 *.pfx
 
-# MCP Playground specific
+# MCP Playground specific - Updated for centralized session-data structure
+# Main playground settings (keep the template, ignore session-specific files)
+playgrounds/session-data/settings-*.json
+playgrounds/session-data/settings.json.bak
+playgrounds/session-data/settings.json.tmp
+
+# IMPORTANT: Never commit the main settings.json file with real API keys
+# This file should only contain empty placeholders for API keys
+# If you need to commit a template, use sample.settings.json instead
+playgrounds/session-data/settings.json
+
+# Centralized session data and logs (NEW STRUCTURE)
+# Keep documentation files but ignore actual session data
+# Only allow markdown files in logs directory - ignore everything else
+playgrounds/session-data/logs/*.log
+playgrounds/session-data/logs/session_*.log
+playgrounds/session-data/logs/debug_*.log
+playgrounds/session-data/logs/mcp-calls.log
+playgrounds/session-data/logs/error-logs.log
+playgrounds/session-data/logs/performance.log
+
+# Session data subdirectories
+playgrounds/session-data/user-sessions/
+playgrounds/session-data/cache/
+playgrounds/session-data/temp/
+playgrounds/session-data/config/
+
+# Legacy playground paths (for backward compatibility)
+playgrounds/*/session-data/
+playgrounds/*/logs/
+playgrounds/*/temp/
+playgrounds/*/cache/
+playgrounds/*/outputs/
+playgrounds/*/uploads/
+
+# Extended playground specific (legacy paths)
+playgrounds/extended/logs/
+playgrounds/extended/session-data/
+playgrounds/extended/temp/
+playgrounds/extended/cache/
+playgrounds/extended/outputs/
+
+# Basic playground specific (legacy paths)
+playgrounds/basic/logs/
+playgrounds/basic/session-data/
+playgrounds/basic/temp/
+playgrounds/basic/cache/
+playgrounds/basic/outputs/
+
+# Legacy playground paths (for backward compatibility)
 playground/settings.json
 playground/.env
 playground/instance/
@@ -283,9 +332,12 @@ backups/
 *.xlsx
 *.json.bak
 
-# Logs
+# Logs (general)
 *.log
+# Ignore general logs directories but allow specific ones with exceptions
 logs/
+!playgrounds/session-data/logs/
+!playgrounds/session-data/logs/*.md
 
 # Temporary files
 temp/
@@ -318,3 +370,5 @@ docker-compose.override.yaml
 local/
 dev/
 development/
+
+
