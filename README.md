@@ -575,6 +575,26 @@ llm-playground/
 - GitHub API access (for GitHub client)
 - PostgreSQL database (for PostgreSQL client)
 
+### GitHub MCP Setup
+
+To use the GitHub MCP server, you need to create a **Fine-grained personal access token** with the following permissions:
+
+#### Repository Permissions Required:
+- **Read access to metadata** - Allows reading repository information
+- **Read and Write access to issues** - Allows reading and creating issues
+
+#### How to Create the Token:
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens
+2. Click "Generate new token"
+3. Set token name (e.g., "LLM Playground MCP")
+4. Set expiration as needed
+5. Select the specific repository or repositories you want to access
+6. Under "Repository permissions":
+   - Set "Metadata" to "Read-only"
+   - Set "Issues" to "Read and write"
+7. Click "Generate token"
+8. Copy the token and add it to your `.env` file as `GITHUB_TOKEN`
+
 ### Installation
 
 1. **Clone the repository:**
@@ -718,11 +738,13 @@ GOOGLE_API_KEY=your_google_api_key
 OLLAMA_BASE_URL=http://localhost:11434
 
 # MCP Configuration
-GITHUB_TOKEN=your_github_personal_access_token
+GITHUB_TOKEN=your_github_fine_grained_personal_access_token  # See GitHub MCP Setup above
 MCP_SERVER_URL=https://api.githubcopilot.com/mcp/
 MCP_SSE_SERVER_URL=http://localhost:8000/sse
 GITHUB_REPO=owner/repo
 ```
+
+**Note**: For the `GITHUB_TOKEN`, you need to create a **Fine-grained personal access token** with repository permissions for "Read access to metadata" and "Read and Write access to issues". See the [GitHub MCP Setup](#github-mcp-setup) section above for detailed instructions.
 
 ### Usage
 
@@ -797,7 +819,23 @@ pip install -r requirements.txt
 cp ../../github-issues/env_example.txt .env
 ```
 
-2. Configure your environment variables (same as basic playground)
+2. Configure your environment variables (same as basic playground):
+
+```bash
+# AI Provider Configuration
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+GOOGLE_API_KEY=your_google_api_key
+OLLAMA_BASE_URL=http://localhost:11434
+
+# MCP Configuration
+GITHUB_TOKEN=your_github_fine_grained_personal_access_token  # See GitHub MCP Setup above
+MCP_SERVER_URL=https://api.githubcopilot.com/mcp/
+MCP_SSE_SERVER_URL=http://localhost:8000/sse
+GITHUB_REPO=owner/repo
+```
+
+**Note**: For the `GITHUB_TOKEN`, you need to create a **Fine-grained personal access token** with repository permissions for "Read access to metadata" and "Read and Write access to issues". See the [GitHub MCP Setup](#github-mcp-setup) section above for detailed instructions.
 
 ### Usage
 
@@ -1003,7 +1041,23 @@ pip install -r requirements.txt
 cp ../../github-issues/env_example.txt .env
 ```
 
-2. Configure your environment variables (same as other playgrounds)
+2. Configure your environment variables (same as other playgrounds):
+
+```bash
+# AI Provider Configuration
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+GOOGLE_API_KEY=your_google_api_key
+OLLAMA_BASE_URL=http://localhost:11434
+
+# MCP Configuration
+GITHUB_TOKEN=your_github_fine_grained_personal_access_token  # See GitHub MCP Setup above
+MCP_SERVER_URL=https://api.githubcopilot.com/mcp/
+MCP_SSE_SERVER_URL=http://localhost:8000/sse
+GITHUB_REPO=owner/repo
+```
+
+**Note**: For the `GITHUB_TOKEN`, you need to create a **Fine-grained personal access token** with repository permissions for "Read access to metadata" and "Read and Write access to issues". See the [GitHub MCP Setup](#github-mcp-setup) section above for detailed instructions.
 
 ### Usage
 
@@ -1604,13 +1658,15 @@ Follow this step-by-step progression to experience the full LLM playground:
 # Install MCP Inspector
 npm install -g @modelcontextprotocol/inspector
 
-# Test GitHub MCP
+# Test GitHub MCP (requires fine-grained personal access token)
 mcp-inspector --url https://api.githubcopilot.com/mcp --header "Authorization: Bearer YOUR_TOKEN" --token YOUR_TOKEN
 
 # Test PostgreSQL MCP (after starting postgres-mcp server)
 mcp-inspector
 # Connect to http://localhost:8000/sse
 ```
+
+**Note**: For GitHub MCP testing, you need a **Fine-grained personal access token** with repository permissions for "Read access to metadata" and "Read and Write access to issues". See the [GitHub MCP Setup](#github-mcp-setup) section above for detailed instructions.
 
 ### Step 2: Run Individual MCP Clients
 ```bash
